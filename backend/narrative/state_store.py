@@ -170,12 +170,29 @@ def _sanitize_authority_snapshot(value: object) -> dict | None:
     return snapshot or None
 
 
+def _make_json_safe(value: object) -> object:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+
+    if isinstance(value, dict):
+        return {str(key): _make_json_safe(item) for key, item in value.items()}
+
+    if isinstance(value, (list, tuple)):
+        return [_make_json_safe(item) for item in value]
+
+    if isinstance(value, set):
+        items = [_make_json_safe(item) for item in value]
+        return sorted(items, key=lambda item: json.dumps(item, ensure_ascii=True, sort_keys=True))
+
+    return str(value)
+
+
 def _sanitize_pending_roll_resolution(value: object) -> dict | None:
     if not isinstance(value, dict):
         return None
 
-    event = value.get("event")
-    roll_result = value.get("roll_result")
+    event = _make_json_safe(value.get("event"))
+    roll_result = _make_json_safe(value.get("roll_result"))
     if not isinstance(event, dict) or not isinstance(roll_result, dict):
         return None
 

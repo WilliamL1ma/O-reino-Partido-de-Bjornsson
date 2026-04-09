@@ -12,13 +12,13 @@ class MechanicsAgent:
     def __init__(self, invoker: LLMStageInvoker | None = None) -> None:
         self._invoker = invoker or LLMStageInvoker()
 
-    def run(self, state: dict) -> MechanicsAgentResult:
+    def detect_event(self, state: dict) -> MechanicsAgentResult:
         mode = str(state.get("mode", "turn"))
         if mode != "turn" or not str(state.get("player_message", "")).strip():
             return MechanicsAgentResult(event=None, diagnostics=["mechanics:skipped"])
 
         try:
-            raw = self._invoker.invoke(build_mechanics_messages(state), temperature=0.15)
+            raw = self._invoker.invoke(build_mechanics_messages(state), temperature=0.15, stage="mechanics")
             event = parse_mechanics_event(raw, state.get("available_monsters", []))
             return MechanicsAgentResult(
                 event=event,

@@ -115,7 +115,7 @@ if (raceModal) {
 
       resetModalState();
       title.textContent = selectedRace.name;
-      threshold.textContent = `Necessario ${selectedRace.threshold}+ no d20`;
+      threshold.textContent = `Necessário ${selectedRace.threshold}+ no d20`;
       status.textContent = "Destino indefinido";
       description.textContent =
         `Para se tornar ${selectedRace.name}, você precisa tirar ${selectedRace.threshold} ou mais em um d20. ` +
@@ -215,7 +215,7 @@ if (statusModal) {
   const updateProgress = () => {
     progress.textContent = `${rolledCount}/${order.length} rolados`;
     const nextField = order[rolledCount];
-    current.textContent = nextField ? `Proximo: ${labels[nextField]}` : "Status completos";
+    current.textContent = nextField ? `Próximo: ${labels[nextField]}` : "Status completos";
   };
 
   const resetDiceState = () => {
@@ -334,11 +334,54 @@ if (classInfoButtons.length > 0) {
 
 const gameChatForm = document.getElementById("game-chat-form");
 const gameRollModal = document.getElementById("game-roll-modal");
+const gameUiHelpers = window.GameUiHelpers || {};
+const createRollModalLifecycle =
+  typeof gameUiHelpers.createRollModalLifecycle === "function"
+    ? gameUiHelpers.createRollModalLifecycle
+    : ({ onClose = () => {} } = {}) => ({
+        open() {
+          return Date.now();
+        },
+        startRoll() {
+          return true;
+        },
+        finishRoll() {
+          return true;
+        },
+        scheduleClose(_sessionId, delay = 2000) {
+          window.setTimeout(() => onClose(), delay);
+          return true;
+        },
+        resetForRetry() {
+          return true;
+        },
+        cancelClose() {},
+        getSessionId() {
+          return 0;
+        },
+      });
+
 let openGameRollModal = null;
 let closeGameRollModal = null;
+let scheduleGameRollModalOpen = null;
+let syncGameViewState = null;
+
+const buildPendingEventDescription = (pendingEvent) => {
+  if (!pendingEvent || typeof pendingEvent !== "object") {
+    return "Resolva o evento pendente para continuar.";
+  }
+
+  if (pendingEvent.type === "encounter" && pendingEvent.monster_name) {
+    return `${pendingEvent.monster_name} surgiu no caminho. ${
+      pendingEvent.stakes || "O choque precisa ser resolvido antes de seguir."
+    }`;
+  }
+
+  return pendingEvent.stakes || "Resolva o evento pendente para continuar.";
+};
 
 if (gameRollModal) {
-  let openRollButton = document.querySelector(".js-open-roll-modal");
+  const openRollButton = document.querySelector(".js-open-roll-modal");
   const rollButton = document.getElementById("game-roll-button");
   const title = document.getElementById("game-roll-title");
   const stakes = document.getElementById("game-roll-stakes");
@@ -346,13 +389,59 @@ if (gameRollModal) {
   const difficulty = document.getElementById("game-roll-difficulty");
   const dice = document.getElementById("game-roll-dice");
   const result = document.getElementById("game-roll-result");
+  const rollLifecycle = createRollModalLifecycle({
+    onClose: () => {
+      gameRollModal.hidden = true;
+      gameRollModal.classList.remove("is-open");
+    },
+    setTimeoutFn: window.setTimeout.bind(window),
+    clearTimeoutFn: window.clearTimeout.bind(window),
+  });
 
   let rolling = false;
+  let activeRollSessionId = 0;
+  let autoOpenTimerId = null;
+  let pendingEventData = null;
+
+  const clearAutoOpenTimer = () => {
+    if (autoOpenTimerId !== null) {
+      window.clearTimeout(autoOpenTimerId);
+      autoOpenTimerId = null;
+    }
+  };
+
+  const buildEventDataFromButton = (button) => {
+    if (!button) {
+      return null;
+    }
+
+    return {
+      type: button.dataset.eventType,
+      roll_type: button.dataset.rollType,
+      attribute: button.dataset.attribute,
+      label: button.dataset.label,
+      difficulty: button.dataset.difficulty,
+      stakes: button.dataset.stakes,
+      monster_name: button.dataset.monsterName,
+    };
+  };
+
+  const resetRollModal = () => {
+    dice.textContent = "?";
+    result.textContent = "";
+    rollButton.disabled = false;
+    rollButton.textContent = "Rolar d20";
+  };
 
   openGameRollModal = (eventData) => {
-    if (!eventData) {
+    if (!eventData || rolling) {
       return;
     }
+
+    clearAutoOpenTimer();
+    rollLifecycle.cancelClose();
+    pendingEventData = eventData;
+    activeRollSessionId = rollLifecycle.open();
 
     title.textContent =
       eventData.type === "encounter"
@@ -361,43 +450,43 @@ if (gameRollModal) {
     stakes.textContent = eventData.stakes || "Resolva o evento pendente para prosseguir.";
     attribute.textContent = eventData.label || "ATRIBUTO";
     difficulty.textContent = `CD ${eventData.difficulty || "12"}`;
-    dice.textContent = "?";
-    result.textContent = "";
-    rollButton.disabled = false;
-    rollButton.textContent = "Rolar d20";
+    resetRollModal();
+
     gameRollModal.hidden = false;
     gameRollModal.classList.add("is-open");
   };
 
   closeGameRollModal = () => {
+    clearAutoOpenTimer();
+    rollLifecycle.cancelClose();
+    rolling = false;
+    pendingEventData = null;
     gameRollModal.hidden = true;
     gameRollModal.classList.remove("is-open");
   };
 
+  scheduleGameRollModalOpen = (eventData, delay = 250) => {
+    if (!eventData) {
+      return;
+    }
+
+    clearAutoOpenTimer();
+    autoOpenTimerId = window.setTimeout(() => {
+      autoOpenTimerId = null;
+      if (typeof openGameRollModal === "function") {
+        openGameRollModal(eventData);
+      }
+    }, delay);
+  };
+
   openRollButton?.addEventListener("click", () => {
-    openGameRollModal({
-      type: openRollButton.dataset.eventType,
-      roll_type: openRollButton.dataset.rollType,
-      attribute: openRollButton.dataset.attribute,
-      label: openRollButton.dataset.label,
-      difficulty: openRollButton.dataset.difficulty,
-      stakes: openRollButton.dataset.stakes,
-      monster_name: openRollButton.dataset.monsterName,
-    });
+    if (typeof openGameRollModal === "function") {
+      openGameRollModal(buildEventDataFromButton(openRollButton));
+    }
   });
 
   if (openRollButton) {
-    window.setTimeout(() => {
-      openGameRollModal({
-        type: openRollButton.dataset.eventType,
-        roll_type: openRollButton.dataset.rollType,
-        attribute: openRollButton.dataset.attribute,
-        label: openRollButton.dataset.label,
-        difficulty: openRollButton.dataset.difficulty,
-        stakes: openRollButton.dataset.stakes,
-        monster_name: openRollButton.dataset.monsterName,
-      });
-    }, 250);
+    scheduleGameRollModalOpen(buildEventDataFromButton(openRollButton));
   }
 
   const animateRoll = async (finalValue) => {
@@ -405,6 +494,7 @@ if (gameRollModal) {
       dice.textContent = String(Math.floor(Math.random() * 20) + 1);
       await wait(70);
     }
+
     const revealFrames = [16, 11, finalValue];
     for (const frame of revealFrames) {
       dice.textContent = String(frame);
@@ -413,9 +503,11 @@ if (gameRollModal) {
   };
 
   rollButton?.addEventListener("click", async () => {
-    if (rolling) {
+    const rollSessionId = activeRollSessionId || rollLifecycle.getSessionId();
+    if (!pendingEventData || !rollLifecycle.startRoll(rollSessionId)) {
       return;
     }
+
     rolling = true;
     rollButton.disabled = true;
     rollButton.textContent = "Rolando...";
@@ -452,13 +544,10 @@ if (gameRollModal) {
       });
 
       await animateRoll(startPayload.roll);
+      rollLifecycle.finishRoll(rollSessionId);
       result.textContent =
         `${startPayload.outcome_label || "resultado"}: ${startPayload.attribute_label} rolou ${startPayload.roll} + ${startPayload.attribute_bonus}, total ${startPayload.total} contra CD ${startPayload.difficulty}.`;
-      window.setTimeout(() => {
-        if (rolling) {
-          closeGameRollModal?.();
-        }
-      }, 2000);
+      rollLifecycle.scheduleClose(rollSessionId, 2000);
 
       if (chatMessages) {
         thinkingArticle = document.createElement("article");
@@ -483,6 +572,7 @@ if (gameRollModal) {
       }
 
       const payload = await resolutionPromise;
+      pendingEventData = payload.view_state?.pending_event || null;
 
       window.clearInterval(thinkingIntervalId);
       if (thinkingArticle && thinkingParagraph) {
@@ -494,46 +584,29 @@ if (gameRollModal) {
         result.textContent += ` Drops recebidos de ${payload.monster_name}: ${payload.loot_names.join(", ")}.`;
       }
 
-      const suggestionPanel = document.getElementById("game-suggestions-panel");
-      const suggestionList = document.getElementById("game-suggestions-list");
-      if (suggestionPanel) {
-        suggestionPanel.hidden = false;
-      }
-      if (suggestionList) {
-        suggestionList.innerHTML = "";
-        if (Array.isArray(payload.suggested_actions) && payload.suggested_actions.length > 0) {
-          payload.suggested_actions.slice(0, 5).forEach((action) => {
-            const item = document.createElement("li");
-            item.textContent = action;
-            suggestionList.appendChild(item);
-          });
-        } else {
-          const item = document.createElement("li");
-          item.textContent = "As próximas opções aparecerão aqui quando o mestre sugerir caminhos.";
-          suggestionList.appendChild(item);
-        }
+      if (typeof syncGameViewState === "function") {
+        syncGameViewState(payload.view_state, {
+          suggestedActions: payload.suggested_actions,
+          pendingEvent: payload.view_state?.pending_event ?? null,
+        });
       }
 
-      document.querySelector(".game-event-banner")?.remove();
-
-      const chatInput = document.getElementById("game-chat-input");
-      const chatSubmit = document.getElementById("game-chat-submit");
-      if (chatInput && chatSubmit) {
-        chatInput.disabled = false;
-        chatSubmit.disabled = false;
-        chatSubmit.textContent = "Falar com o mestre";
-      }
       rolling = false;
     } catch (error) {
+      rollLifecycle.resetForRetry(rollSessionId);
       window.clearInterval(thinkingIntervalId);
       if (thinkingArticle && thinkingParagraph) {
         thinkingArticle.classList.remove("game-chat__message--thinking");
-        thinkingParagraph.textContent = "O mestre demora mais do que o esperado para fechar essa consequência. Tente novamente.";
+        thinkingParagraph.textContent =
+          "O mestre demora mais do que o esperado para fechar essa consequência. Tente novamente.";
       }
+
       dice.textContent = "!";
       result.textContent = "A rolagem vacilou por um instante. Tente novamente.";
-      rollButton.disabled = false;
-      rollButton.textContent = "Rolar d20";
+      if (!gameRollModal.hidden) {
+        rollButton.disabled = false;
+        rollButton.textContent = "Rolar d20";
+      }
       rolling = false;
       console.error(error);
     }
@@ -550,7 +623,26 @@ if (gameChatForm) {
   const suggestionList = document.getElementById("game-suggestions-list");
   const currentMomentTitle = document.getElementById("game-current-moment-title");
   const currentMomentDescription = document.getElementById("game-current-moment-description");
+  const sceneEyebrow = document.getElementById("game-scene-eyebrow");
+  const progressAct = document.getElementById("game-progress-act");
+  const progressXp = document.getElementById("game-progress-xp");
+  const progressGold = document.getElementById("game-progress-gold");
+  const progressSceneTitle = document.getElementById("game-progress-scene-title");
+  const inventoryList = document.getElementById("game-inventory-list");
+  const recentRewardPanel = document.getElementById("game-recent-reward-panel");
+  const recentRewardMonster = document.getElementById("game-recent-reward-monster");
+  const recentRewardXp = document.getElementById("game-recent-reward-xp");
+  const recentRewardGold = document.getElementById("game-recent-reward-gold");
+  const recentRewardLoot = document.getElementById("game-recent-reward-loot");
   const findPendingEventBanner = () => document.querySelector(".game-event-banner");
+
+  const setText = (element, value) => {
+    if (!element) {
+      return;
+    }
+
+    element.textContent = value == null ? "" : String(value);
+  };
 
   const setChatAvailability = (blocked) => {
     if (!chatInput || !chatSubmit) {
@@ -601,7 +693,7 @@ if (gameChatForm) {
     }
 
     const title = document.createElement("strong");
-    title.textContent = role === "gm" ? "Mestre" : "Voce";
+    title.textContent = role === "gm" ? "Mestre" : "Você";
 
     const paragraph = document.createElement("p");
     paragraph.textContent = content;
@@ -641,6 +733,74 @@ if (gameChatForm) {
     };
   };
 
+  const renderInventoryPreview = (items) => {
+    if (!inventoryList || !Array.isArray(items)) {
+      return;
+    }
+
+    inventoryList.innerHTML = "";
+    if (items.length === 0) {
+      const item = document.createElement("li");
+      item.textContent = "Nenhum item coletado ainda.";
+      inventoryList.appendChild(item);
+      return;
+    }
+
+    items.forEach((entry) => {
+      const item = document.createElement("li");
+      const strong = document.createElement("strong");
+      strong.textContent = entry.name || "Item sem nome";
+      item.appendChild(strong);
+
+      if (entry.value != null) {
+        const value = document.createElement("span");
+        value.textContent = ` (${entry.value} ouro)`;
+        item.appendChild(value);
+      }
+
+      inventoryList.appendChild(item);
+    });
+  };
+
+  const renderRecentReward = (recentReward) => {
+    if (!recentRewardPanel) {
+      return;
+    }
+
+    if (!recentReward || typeof recentReward !== "object") {
+      recentRewardPanel.hidden = true;
+      setText(recentRewardMonster, "");
+      setText(recentRewardXp, "");
+      setText(recentRewardGold, "");
+      setText(recentRewardLoot, "");
+      return;
+    }
+
+    recentRewardPanel.hidden = false;
+    setText(recentRewardMonster, recentReward.monster_name || "");
+    setText(recentRewardXp, recentReward.xp_gain ?? "");
+    setText(recentRewardGold, recentReward.gold_gain ?? "");
+    if (Array.isArray(recentReward.loot_names) && recentReward.loot_names.length > 0) {
+      setText(recentRewardLoot, recentReward.loot_names.join(", "));
+    } else {
+      setText(recentRewardLoot, "Nenhum item raro");
+    }
+  };
+
+  const updateCurrentMoment = (moment) => {
+    if (!moment || typeof moment !== "object") {
+      return;
+    }
+
+    if (currentMomentTitle && typeof moment.title === "string" && moment.title.trim()) {
+      currentMomentTitle.textContent = moment.title.trim();
+    }
+
+    if (currentMomentDescription && typeof moment.description === "string" && moment.description.trim()) {
+      currentMomentDescription.textContent = moment.description.trim();
+    }
+  };
+
   const syncPendingEvent = (pendingEvent) => {
     const currentBanner = findPendingEventBanner();
 
@@ -662,11 +822,9 @@ if (gameChatForm) {
     banner.innerHTML = "";
     const label = document.createElement("strong");
     label.textContent = "Rolagem pendente:";
+
     const description = document.createElement("span");
-    description.textContent =
-      pendingEvent.type === "encounter" && pendingEvent.monster_name
-        ? `${pendingEvent.monster_name} surgiu no caminho. ${pendingEvent.stakes}`
-        : pendingEvent.stakes || "Resolva o evento pendente para continuar.";
+    description.textContent = buildPendingEventDescription(pendingEvent);
 
     const button = document.createElement("button");
     button.className = "button button--primary";
@@ -686,19 +844,50 @@ if (gameChatForm) {
     renderSuggestions([], { blocked: true });
   };
 
-  const updateCurrentMoment = (moment) => {
-    if (!moment || typeof moment !== "object") {
-      return;
+  const applyViewState = (viewState, overrides = {}) => {
+    const state = viewState && typeof viewState === "object" ? viewState : {};
+    const sceneState = state.scene && typeof state.scene === "object" ? state.scene : {};
+    const progressState = state.progress && typeof state.progress === "object" ? state.progress : {};
+
+    if (sceneEyebrow && typeof sceneState.eyebrow === "string" && sceneState.eyebrow.trim()) {
+      sceneEyebrow.textContent = sceneState.eyebrow.trim();
+    }
+    if (progressAct && progressState.act != null) {
+      progressAct.textContent = String(progressState.act);
+    }
+    if (progressXp && progressState.experience != null) {
+      progressXp.textContent = String(progressState.experience);
+    }
+    if (progressGold && progressState.gold != null) {
+      progressGold.textContent = String(progressState.gold);
+    }
+    if (progressSceneTitle && typeof sceneState.title === "string" && sceneState.title.trim()) {
+      progressSceneTitle.textContent = sceneState.title.trim();
     }
 
-    if (currentMomentTitle && typeof moment.title === "string" && moment.title.trim()) {
-      currentMomentTitle.textContent = moment.title.trim();
+    if (Array.isArray(state.inventory_preview)) {
+      renderInventoryPreview(state.inventory_preview);
+    }
+    if ("recent_reward" in state) {
+      renderRecentReward(state.recent_reward);
     }
 
-    if (currentMomentDescription && typeof moment.description === "string" && moment.description.trim()) {
-      currentMomentDescription.textContent = moment.description.trim();
-    }
+    const currentMoment =
+      Object.prototype.hasOwnProperty.call(overrides, "currentMoment") ? overrides.currentMoment : state.current_moment;
+    updateCurrentMoment(currentMoment);
+
+    const pendingEvent =
+      Object.prototype.hasOwnProperty.call(overrides, "pendingEvent") ? overrides.pendingEvent : state.pending_event;
+    const suggestedActions =
+      Object.prototype.hasOwnProperty.call(overrides, "suggestedActions")
+        ? overrides.suggestedActions
+        : state.suggested_actions;
+
+    renderSuggestions(suggestedActions, { blocked: Boolean(pendingEvent) });
+    syncPendingEvent(pendingEvent);
   };
+
+  syncGameViewState = applyViewState;
 
   gameChatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -729,22 +918,21 @@ if (gameChatForm) {
         throw new Error(payload.message || "Não foi possível falar com o mestre.");
       }
 
-      if (payload.pending_event && !String(payload.gm_message || "").trim()) {
-        thinking.remove();
+      const gmMessage = String(payload.gm_message || "").trim();
+      if (gmMessage) {
+        thinking.resolve(gmMessage);
       } else {
-        thinking.resolve(payload.gm_message);
-      }
-      renderSuggestions(payload.suggested_actions, { blocked: Boolean(payload.pending_event) });
-      updateCurrentMoment(payload.current_moment);
-      syncPendingEvent(payload.pending_event);
-
-      if (payload.next_scene) {
-        window.setTimeout(() => window.location.reload(), 900);
-        return;
+        thinking.remove();
       }
 
-      if (payload.pending_event && typeof openGameRollModal === "function") {
-        window.setTimeout(() => openGameRollModal(payload.pending_event), 260);
+      applyViewState(payload.view_state, {
+        suggestedActions: payload.suggested_actions,
+        currentMoment: payload.current_moment,
+        pendingEvent: payload.pending_event,
+      });
+
+      if (payload.pending_event && typeof scheduleGameRollModalOpen === "function") {
+        scheduleGameRollModalOpen(payload.pending_event, 260);
       }
     } catch (error) {
       thinking.resolve("O mestre hesita por um instante, como se a cena ainda estivesse se formando. Tente novamente.");

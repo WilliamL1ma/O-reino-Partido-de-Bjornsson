@@ -37,9 +37,31 @@ SCENE_ACTION_TRANSITIONS = {
 
 FIRST_CHAPTER_ACHIEVEMENT = {
     "slug": "primeiro-capitulo-concluido",
-    "name": "Primeiro Capitulo Concluido",
+    "name": "Primeiro Capítulo Concluído",
     "description": "Recebeu um legado do capítulo inicial e assumiu o mistério principal de Elandoria.",
 }
+
+PUBLIC_ERROR_MESSAGES = {
+    "character_missing": "Sua presença ainda não tomou forma na jornada. Revise a ficha antes de continuar.",
+    "character_incomplete": "Seu papel na história ainda não foi firmado. Termine a criação do personagem antes de chamar o mestre.",
+    "master_unavailable": "A voz do mestre está distante agora. Tente novamente mais tarde.",
+    "pending_roll_required": "A cena ficou suspensa no dado. Resolva a rolagem pendente antes de continuar.",
+    "message_required": "Diga o que seu personagem tenta fazer antes de chamar o mestre.",
+    "no_pending_roll": "Não há nenhuma rolagem pendente agora.",
+    "master_busy": "O mestre precisa de um instante para retomar o fio da cena. Tente novamente em breve.",
+    "master_failure": "A voz do mestre vacila por um instante, mas a cena ainda está aí. Tente novamente.",
+    "roll_start_failure": "Os dados escaparam da mesa por um instante. Tente rolar novamente.",
+    "roll_resolution_failure": "A consequência ainda não se firmou no mundo. Tente retomar a rolagem.",
+}
+
+
+def _json_error(message: str, status_code: int) -> tuple[object, int]:
+    return jsonify({"ok": False, "message": message}), status_code
+
+
+def _mask_logged_exception(*, public_message: str, status_code: int, log_message: str) -> tuple[object, int]:
+    LOGGER.exception(log_message)
+    return _json_error(public_message, status_code)
 
 
 def _inventory_names(inventory: list[dict]) -> set[str]:
@@ -55,7 +77,7 @@ def _inventory_names(inventory: list[dict]) -> set[str]:
 def _has_first_chapter_rewards(inventory: list[dict]) -> bool:
     names = _inventory_names(inventory)
     has_main_mystery = "Cristal Incompreendido" in names
-    has_legacy = "Espada de Vinganca de Rowan" in names or "Cajado de Freya" in names
+    has_legacy = any(name in names for name in ("Espada de Vingança de Rowan", "Espada de Vinganca de Rowan", "Cajado de Freya"))
     return has_main_mystery and has_legacy
 
 
@@ -188,8 +210,8 @@ def build_story_rewards(character: Character) -> list[dict]:
     rewards = [
         {
             "name": "Cristal Incompreendido",
-            "tag": "Misterio principal",
-            "description": "Artefato instavel ligado aos segredos maiores dos reinos.",
+            "tag": "Mistério principal",
+            "description": "Artefato instável ligado aos segredos maiores dos reinos.",
         }
     ]
 
@@ -202,14 +224,14 @@ def build_story_rewards(character: Character) -> list[dict]:
             {
                 "name": "Cajado de Freya",
                 "tag": "Legado de vida",
-                "description": "Amplifica magia, cura e percepcao do fluxo vital em areas perigosas.",
+                "description": "Amplifica magia, cura e percepção do fluxo vital em áreas perigosas.",
             },
         )
     else:
         rewards.insert(
             0,
             {
-                "name": "Espada de Vinganca de Rowan",
+                "name": "Espada de Vingança de Rowan",
                 "tag": "Legado de justiça",
                 "description": "Arma a dor transformada em coragem, moral de grupo e dano aumentado.",
             },
@@ -247,7 +269,7 @@ def finalize_chapter_rewards(
     )
 
     reward_names = {reward["name"] for reward in chapter_rewards}
-    if "Espada de Vinganca de Rowan" in reward_names and "Cristal Incompreendido" in reward_names:
+    if "Espada de Vingança de Rowan" in reward_names and "Cristal Incompreendido" in reward_names:
         closing_message = (
             "O legado de justiça repousa agora em suas mãos, e o mistério principal de Elandoria segue vivo diante de você. "
             "O mestre inclina a cabeça em respeito. Obrigado por jogar o primeiro capítulo."
@@ -296,16 +318,16 @@ def _handle_legacy_puzzle_action(
         flash("Os espelhos ainda não foram compreendidos na ordem correta.", "error")
         return True
     if legacy_word != "paz":
-        flash("O guardiao ainda aguarda a palavra que define o futuro de Elandoria.", "error")
+        flash("O guardião ainda aguarda a palavra que define o futuro de Elandoria.", "error")
         return True
-    if altar_flower != "flor da esperanca":
-        flash("O altar so responde a flor certa, ligada ao herdeiro que nunca nasceu.", "error")
+    if altar_flower not in {"flor da esperanca", "flor da esperança"}:
+        flash("O altar só responde à flor certa, ligada ao herdeiro que nunca nasceu.", "error")
         return True
 
     flags = get_flags(character)
     flags["freya_legacy_solved"] = True
     persist_state(character.id, scene="encounter_lobisomem", act=5, flags=flags)
-    flash("O legado de Freya respondeu. Algo feroz desperta alem do portal.", "success")
+    flash("O legado de Freya respondeu. Algo feroz desperta além do portal.", "success")
     return True
 
 
@@ -341,7 +363,7 @@ def handle_game_play(
         transition = get_encounter_transition(scene_key)
         if transition:
             if action not in TACTICS:
-                flash("Escolha uma tatica valida para o confronto.", "error")
+                flash("Escolha uma tática válida para o confronto.", "error")
                 return redirect(url_for("game_routes.game_play"))
 
             outcome = resolve_encounter(character, transition["monster"], action)
@@ -366,8 +388,8 @@ def handle_game_play(
             flash(
                 (
                     f"{outcome['monster']['name']} vencido com {outcome['tactic']['name'].lower()}. "
-                    f"Rolagem {outcome['roll']} + bonus {outcome['bonus']} = {outcome['total']}. "
-                    f"Voce ganhou {outcome['xp_gain']} XP, {outcome['gold_gain']} ouro e coletou {loot_names}."
+                    f"Rolagem {outcome['roll']} + bônus {outcome['bonus']} = {outcome['total']}. "
+                    f"Você ganhou {outcome['xp_gain']} XP, {outcome['gold_gain']} ouro e coletou {loot_names}."
                 ),
                 "success" if outcome["success"] else "warning",
             )
@@ -424,20 +446,20 @@ def handle_game_master_chat(
     groq_enabled: bool | None = None,
 ) -> tuple[object, int] | object:
     if character is None:
-        return jsonify({"ok": False, "message": "Crie sua ficha antes de falar com o mestre."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["character_missing"], 400)
     if not character.class_name:
-        return jsonify({"ok": False, "message": "Finalize a criação do personagem antes de usar o mestre."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["character_incomplete"], 400)
 
     if groq_enabled is None:
         groq_enabled = groq_is_configured()
     if not groq_enabled:
-        return jsonify({"ok": False, "message": "Configure GROQ_API_KEY no .env para ativar o mestre conversacional."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["master_unavailable"], 503)
     if get_pending_event_for_character(character):
-        return jsonify({"ok": False, "message": "Existe uma rolagem pendente. Resolva o dado antes de continuar a conversa."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["pending_roll_required"], 400)
 
     player_message = request.form.get("message", "").strip()
     if not player_message:
-        return jsonify({"ok": False, "message": "Escreva sua ação ou pergunta antes de enviar."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["message_required"], 400)
 
     try:
         response_payload = conversation_runner(
@@ -446,10 +468,18 @@ def handle_game_master_chat(
             refresh_character=lambda _character_id: get_character_by_user_id(character.user_id),
             summarize_memory=summarize_memory,
         ).to_response()
-    except LLMRateLimitError as error:
-        return jsonify({"ok": False, "message": str(error)}), 429
-    except Exception as error:
-        return jsonify({"ok": False, "message": f"Falha ao consultar o mestre via grafo: {error}"}), 502
+    except LLMRateLimitError:
+        return _mask_logged_exception(
+            public_message=PUBLIC_ERROR_MESSAGES["master_busy"],
+            status_code=429,
+            log_message=f"Limite ou indisponibilidade temporária ao consultar o mestre para character_id={character.id}.",
+        )
+    except Exception:
+        return _mask_logged_exception(
+            public_message=PUBLIC_ERROR_MESSAGES["master_failure"],
+            status_code=502,
+            log_message=f"Falha interna ao consultar o mestre para character_id={character.id}.",
+        )
 
     return jsonify(response_payload)
 
@@ -462,16 +492,20 @@ def handle_game_roll(
     get_pending_event_for_character: Callable[[Character], dict | None] = get_pending_event,
 ) -> tuple[object, int] | object:
     if character is None:
-        return jsonify({"ok": False, "message": "Personagem não encontrado."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["character_missing"], 400)
 
     pending_event = get_pending_event_for_character(character)
     if not pending_event:
-        return jsonify({"ok": False, "message": "Nao existe evento pendente para rolagem."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["no_pending_roll"], 400)
 
     try:
         response_payload = roll_runner(character, pending_event).to_response()
-    except Exception as error:
-        return jsonify({"ok": False, "message": f"Falha ao iniciar a rolagem: {error}"}), 502
+    except Exception:
+        return _mask_logged_exception(
+            public_message=PUBLIC_ERROR_MESSAGES["roll_start_failure"],
+            status_code=502,
+            log_message=f"Falha interna ao iniciar rolagem para character_id={character.id}.",
+        )
 
     return jsonify(response_payload)
 
@@ -482,21 +516,29 @@ def handle_game_roll_resolution(
     summarize_memory: Callable[[Character], None],
     roll_runner: Callable[..., object] = run_roll_resolution,
     get_pending_event_for_character: Callable[[Character], dict | None] = get_pending_event,
+    get_character_by_user_id: Callable[[int], Character | None] | None = None,
 ) -> tuple[object, int] | object:
     if character is None:
-        return jsonify({"ok": False, "message": "Personagem não encontrado."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["character_missing"], 400)
 
     pending_event = get_pending_event_for_character(character)
     if not pending_event:
-        return jsonify({"ok": False, "message": "Nao existe evento pendente para rolagem."}), 400
+        return _json_error(PUBLIC_ERROR_MESSAGES["no_pending_roll"], 400)
 
     try:
         response_payload = roll_runner(
             character,
             pending_event,
             summarize_memory=summarize_memory,
+            refresh_character=(lambda _character_id: get_character_by_user_id(character.user_id))
+            if get_character_by_user_id is not None
+            else None,
         ).to_response()
-    except Exception as error:
-        return jsonify({"ok": False, "message": f"Falha ao resolver a rolagem: {error}"}), 502
+    except Exception:
+        return _mask_logged_exception(
+            public_message=PUBLIC_ERROR_MESSAGES["roll_resolution_failure"],
+            status_code=502,
+            log_message=f"Falha interna ao resolver rolagem para character_id={character.id}.",
+        )
 
     return jsonify(response_payload)

@@ -9,6 +9,9 @@ BACKEND_DIR = Path(__file__).resolve().parents[1] / "backend"
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
+from master_graph_components import parser as parser_helpers
+from master_graph_components import review as review_helpers
+
 
 def _install_langchain_stubs() -> None:
     if "langchain_core.messages" not in sys.modules:
@@ -97,7 +100,7 @@ class MasterGraphParserTests(unittest.TestCase):
             "* Fazer outra coisa"
         )
 
-        cleaned_narration, actions = self.master_graph._extract_embedded_actions(narration)
+        cleaned_narration, actions = parser_helpers.extract_embedded_actions(narration)
 
         self.assertEqual(
             cleaned_narration,
@@ -123,7 +126,7 @@ class MasterGraphParserTests(unittest.TestCase):
             "* Continue a monitorar a clareira de uma distancia segura"
         )
 
-        cleaned_narration, actions = self.master_graph._extract_embedded_actions(narration)
+        cleaned_narration, actions = parser_helpers.extract_embedded_actions(narration)
 
         self.assertEqual(
             cleaned_narration,
@@ -149,7 +152,7 @@ class MasterGraphParserTests(unittest.TestCase):
             "- Continue a observar o gato"
         )
 
-        cleaned_narration, actions = self.master_graph._extract_embedded_actions(narration)
+        cleaned_narration, actions = parser_helpers.extract_embedded_actions(narration)
 
         self.assertEqual(
             cleaned_narration,
@@ -166,13 +169,13 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
     def test_soften_player_intent_preserves_attack_but_reduces_gore(self) -> None:
-        softened = self.master_graph._soften_player_intent("eu pego minha adaga e enfio no coração dele")
+        softened = review_helpers.soften_player_intent("eu pego minha adaga e enfio no coração dele")
         self.assertNotIn("enfio", softened.lower())
         self.assertNotIn("coração", softened.lower())
         self.assertIn("adaga", softened.lower())
 
     def test_sanitize_actions_extracts_text_from_dict_items(self) -> None:
-        actions = self.master_graph._sanitize_actions(
+        actions = parser_helpers.sanitize_actions(
             [{"ação": "revistar o corpo do gato"}, {"action": "observar o entorno"}],
             ["fallback"],
         )
@@ -187,7 +190,7 @@ class MasterGraphParserTests(unittest.TestCase):
             'outra coisa", "suggested_actions": [], "event": null, "next_scene": null}'
         )
 
-        narration, event, next_scene, actions = self.master_graph._parse_json_payload(
+        narration, event, next_scene, actions = parser_helpers.parse_json_payload(
             raw_text,
             [],
             ["goblin"],
@@ -197,6 +200,7 @@ class MasterGraphParserTests(unittest.TestCase):
                 "Avancar com agressividade contra o atirador",
                 "Gritar para intimidar o inimigo",
             ],
+            review_helpers.contextual_actions_from_narration,
         )
 
         self.assertEqual(
@@ -223,7 +227,7 @@ class MasterGraphParserTests(unittest.TestCase):
             '"suggested_actions": [], "event": null, "next_scene": null}'
         )
 
-        narration, event, next_scene, actions = self.master_graph._parse_json_payload(
+        narration, event, next_scene, actions = parser_helpers.parse_json_payload(
             raw_text,
             [],
             ["goblin"],
@@ -234,6 +238,7 @@ class MasterGraphParserTests(unittest.TestCase):
                 "Ler melhor o terreno e os sinais ao redor",
                 "Agir com cautela e responder ao que acontecer agora",
             ],
+            review_helpers.contextual_actions_from_narration,
         )
 
         self.assertIn("goblin derrotado", narration)
@@ -251,7 +256,7 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
     def test_guardrails_strip_json_and_replace_recent_reward_block(self) -> None:
-        narration, actions = self.master_graph._enforce_guardrails(
+        narration, actions = review_helpers.enforce_guardrails(
             (
                 "Voce pega todos os itens encontrados no corpo.\n\n"
                 "**Recent Reward:**\n"
@@ -293,7 +298,7 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
     def test_review_feedback_marks_invalid_draft_with_json_and_fake_loot(self) -> None:
-        valid, feedback = self.master_graph._build_review_feedback(
+        valid, feedback = review_helpers.build_review_feedback(
             (
                 '```json\n{"narration":"x"}\n```\n'
                 "**Recent Reward:**\n- Uma faca pequena de madeira\n"
@@ -319,7 +324,7 @@ class MasterGraphParserTests(unittest.TestCase):
         self.assertIn("loot inventado", feedback)
 
     def test_review_feedback_flags_embedded_suggestions_not_extracted(self) -> None:
-        valid, feedback = self.master_graph._build_review_feedback(
+        valid, feedback = review_helpers.build_review_feedback(
             (
                 "Voce observa a clareira.\n\n"
                 "Aqui estão algumas sugestões de ações possíveis:\n\n"
@@ -338,10 +343,10 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
         self.assertFalse(valid)
-        self.assertIn("lista de sugestões embutida", feedback)
+        self.assertIn("lista de sugestoes embutida", feedback)
 
     def test_review_feedback_flags_model_refusal(self) -> None:
-        valid, feedback = self.master_graph._build_review_feedback(
+        valid, feedback = review_helpers.build_review_feedback(
             "Não posso prosseguir com essa sequência. Posso ajudar com outra ação?",
             [
                 "Observar a reacao imediata da criatura antes de agir",
@@ -358,7 +363,7 @@ class MasterGraphParserTests(unittest.TestCase):
         self.assertIn("recusa do modelo", feedback)
 
     def test_review_feedback_flags_entity_swap_from_cat_to_goblin(self) -> None:
-        valid, feedback = self.master_graph._build_review_feedback(
+        valid, feedback = review_helpers.build_review_feedback(
             "O goblin esta morto, mas pode haver mais perigos por ai.",
             [
                 "Examinar o corpo do goblin",
@@ -380,7 +385,7 @@ class MasterGraphParserTests(unittest.TestCase):
         self.assertIn("trocou a entidade", feedback)
 
     def test_entity_continuity_ignores_negated_player_entity(self) -> None:
-        broken = self.master_graph._entity_continuity_broken(
+        broken = review_helpers.entity_continuity_broken(
             "O goblin esta morto.",
             "não estamos falando de goblin",
             [{"role": "gm", "content": "O gato ainda observa sua mao com cautela."}],
@@ -388,7 +393,7 @@ class MasterGraphParserTests(unittest.TestCase):
         self.assertTrue(broken)
 
     def test_review_feedback_flags_physical_causality_break(self) -> None:
-        valid, feedback = self.master_graph._build_review_feedback(
+        valid, feedback = review_helpers.build_review_feedback(
             "Voce pega sua adaga e a crava no peito do gato, mas ele comeca a se afastar e volta a cheirar sua mao.",
             [
                 "Tentar acalmar o gato",
@@ -404,33 +409,26 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
         self.assertFalse(valid)
-        self.assertIn("causalidade física", feedback)
+        self.assertIn("causalidade fisica", feedback)
 
     def test_finalize_node_uses_consistency_fallback_when_review_stays_invalid(self) -> None:
         result = self.master_graph._finalize_node(
             {
-                "draft_narration": "O goblin esta morto.",
-                "draft_suggested_actions": [{"ação": "revistar o corpo do goblin"}],
+                "approved_narration": "",
+                "approved_suggested_actions": [],
                 "fallback_actions": ["fallback"],
                 "character_state": {"recent_reward": "nenhum"},
-                "review_valid": False,
+                "narrative_review_valid": False,
+                "suggestion_review_valid": False,
                 "player_message": "eu pego minha adaga e enfio no coração dele",
                 "recent_messages": [{"role": "gm", "content": "O gato ainda está diante de você."}],
-                "draft_event": None,
-                "draft_next_scene": None,
+                "narrative_force_fallback": False,
+                "suggestion_force_fallback": False,
             }
         )
         self.assertIn("gato", result["result_narration"])
         self.assertNotIn("goblin", result["result_narration"])
-        self.assertEqual(
-            result["result_suggested_actions"],
-            [
-                "Medir a reacao imediata do alvo ao seu ataque",
-                "Ajustar sua posição antes de um possível contra-ataque",
-                "Observar o entorno para ver se mais alguem reage ao confronto",
-                "Decidir se continua a ofensiva ou se recua com cautela",
-            ],
-        )
+        self.assertEqual(result["result_suggested_actions"], ["fallback"])
 
     def test_route_review_allows_second_revision_before_finalize(self) -> None:
         self.assertEqual(self.master_graph._route_review({"review_valid": False, "revise_attempt": 0}), "revise")

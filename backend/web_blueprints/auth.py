@@ -39,7 +39,7 @@ def create_auth_blueprint(
 
             user = get_user_by_email(email)
             if not user or not verify_password(password, user.password_hash):
-                flash("E-mail ou senha invalidos.", "error")
+                flash("E-mail ou senha inválidos.", "error")
                 return redirect(url_for(".login"))
 
             login_user(user)
@@ -71,15 +71,15 @@ def create_auth_blueprint(
                 flash("A senha deve ter pelo menos 8 caracteres.", "error")
                 return redirect(url_for(".register"))
 
-            birth_daté = validate_birth_date(birth_date_raw)
-            if birth_daté is None:
-                flash("Informe uma data de nascimento valida.", "error")
+            birth_date = validate_birth_date(birth_date_raw)
+            if birth_date is None:
+                flash("Informe uma data de nascimento válida.", "error")
                 return redirect(url_for(".register"))
 
             with session_scope() as db_session:
                 existing_user = db_session.query(user_model).filter_by(email=email).first()
                 if existing_user:
-                    flash("Ja existe uma conta cadastrada com esse e-mail.", "error")
+                    flash("Já existe uma conta cadastrada com esse e-mail.", "error")
                     return redirect(url_for(".register"))
 
                 user = user_model(
@@ -92,10 +92,10 @@ def create_auth_blueprint(
                 try:
                     db_session.flush()
                 except integrity_error:
-                    flash("Ja existe uma conta cadastrada com esse e-mail.", "error")
+                    flash("Já existe uma conta cadastrada com esse e-mail.", "error")
                     return redirect(url_for(".register"))
 
-            flash("Conta criada com sucesso. Faca login para continuar.", "success")
+            flash("Conta criada com sucesso. Faça login para continuar.", "success")
             return redirect(url_for(".login"))
 
         return render_template("register.html")
@@ -103,7 +103,7 @@ def create_auth_blueprint(
     @blueprint.post("/logout", endpoint="logout")
     def logout():
         logout_user()
-        flash("Sessao encerrada.", "success")
+        flash("Sessão encerrada.", "success")
         return redirect(url_for(".index"))
 
     return blueprint

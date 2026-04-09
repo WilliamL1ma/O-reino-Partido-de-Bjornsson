@@ -156,7 +156,13 @@ a {
   padding: 0 22px;
   border-radius: 999px;
   border: 1px solid transparent;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
 }
 
 .topbar__cta {
@@ -183,8 +189,32 @@ a {
 }
 
 .topbar__cta:hover,
-.button:hover {
+.button:not(.button--disabled):hover {
   transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.topbar__cta:hover,
+.button--primary:hover {
+  box-shadow: 0 20px 42px rgba(216, 179, 106, 0.28);
+}
+
+.button--ghost:hover {
+  border-color: rgba(242, 207, 135, 0.55);
+  background: rgba(216, 179, 106, 0.12);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+}
+
+.topbar__cta:disabled,
+.button:disabled {
+  cursor: not-allowed;
+}
+
+.button:disabled:hover,
+.button--disabled:hover {
+  transform: none;
+  filter: none;
+  box-shadow: none;
 }
 
 .hero {
@@ -818,6 +848,25 @@ a {
   margin-top: 12px;
 }
 
+.game-current-moment {
+  margin-top: 22px;
+  display: grid;
+  gap: 10px;
+}
+
+.game-current-moment__title {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-size: 1.6rem;
+  color: var(--gold-strong);
+}
+
+.game-current-moment__description {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
 .game-event-banner {
   display: flex;
   align-items: center;
@@ -1109,6 +1158,8 @@ a {
 .race-card__info:hover {
   transform: translateY(-1px);
   border-color: rgba(242, 207, 135, 0.55);
+  background: rgba(216, 179, 106, 0.12);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
 }
 
 .race-card__summary {

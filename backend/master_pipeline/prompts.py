@@ -58,7 +58,8 @@ def build_narrative_messages(state: dict, mechanics_event: dict | None) -> list[
                 "A narração do mestre não pode vir inteira entre aspas. Apenas falas de personagens ou NPCs devem aparecer entre aspas. "
                 "Mantenha a linguagem compativel com fantasia medieval. Evite objetos e referencias modernas como garrafa plastica, telefone, carro, motor, gasolina, elevador ou arma de fogo moderna, salvo se o lore disser explicitamente o contrario. "
                 "Se mechanics_event existir, interrompa a cena no ponto em que a rolagem precisa acontecer e não narre o desfecho como fato consumado. "
-                "Se um encontro surpresa ou combate forçado surgir do mundo, use story_event com type='forced_encounter', scene e monster_slug. "
+                "Se um encontro surpresa ou combate forçado surgir do mundo, use story_event com type='forced_encounter', scene, monster_slug e trigger_text. "
+                "trigger_text deve ser curto, diegético, impactante e parar antes da resolução do dado. "
                 "Não use next_scene sozinho para iniciar combate surpresa. "
                 "Use next_scene apenas quando houver uma transicao narrativa real. "
                 "Responda apenas em JSON com narration, next_scene e story_event."
@@ -107,6 +108,7 @@ def build_narrative_revision_messages(
                 "A narração do mestre não pode ficar inteira entre aspas. Só falas de personagens ficam entre aspas. "
                 "Remova anacronismos e troque objetos modernos por equivalentes coerentes com fantasia medieval. "
                 "Se houver combate surpresa, use story_event em vez de next_scene técnico para disparar o encontro. "
+                "Quando usar story_event forced_encounter, mantenha um trigger_text curto e diegético antes do dado. "
                 "Entregue apenas JSON com narration, next_scene e story_event."
             ),
         },

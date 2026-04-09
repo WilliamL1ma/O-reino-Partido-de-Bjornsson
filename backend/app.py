@@ -12,16 +12,16 @@ from database import session_scope
 from migrations import run_migrations
 from models import Character, User
 from models import GameMessage, MemorySummary
-from narrative import (
+from narrative.game_master_service import ensure_story_initialized as narrative_ensure_story_initialized, run_master_conversation
+from narrative.llm_gateway import groq_is_configured
+from narrative.memory_service import summarize_memory_if_needed as narrative_summarize_memory_if_needed
+from narrative.roll_service import run_roll_resolution, run_roll_start
+from narrative.state_store import (
     get_pending_event as narrative_get_pending_event,
     get_story_flags as narrative_get_story_flags,
     get_story_inventory as narrative_get_story_inventory,
     persist_story_state as narrative_persist_story_state,
-    summarize_memory_if_needed as narrative_summarize_memory_if_needed,
 )
-from narrative.game_master_service import ensure_story_initialized as narrative_ensure_story_initialized, run_master_conversation
-from narrative.llm_gateway import groq_is_configured
-from narrative.roll_service import run_roll_resolution, run_roll_start
 from narrative.web_handlers import (
     handle_game_master_chat as narrative_handle_game_master_chat,
     handle_game_play as narrative_handle_game_play,
@@ -243,7 +243,7 @@ def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if "user_id" not in session:
-            flash("Faca login para acessar essa area.", "error")
+            flash("Faça login para acessar esta área.", "error")
             return redirect(url_for("auth_routes.login"))
         return view(*args, **kwargs)
 

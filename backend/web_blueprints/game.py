@@ -82,6 +82,7 @@ def create_game_blueprint(
             summarize_memory=summarize_memory_if_needed(),
             roll_runner=run_roll_resolution(),
             get_pending_event_for_character=get_pending_event(),
+            get_character_by_user_id=lambda _user_id: get_character_by_user_id()(session["user_id"]),
         )
 
     @blueprint.post("/jogo/resetar-campanha", endpoint="game_reset_campaign")

@@ -7,6 +7,7 @@ from typing import Any
 
 
 DEFAULT_GROQ_MODEL = "qwen/qwen3-32b"
+DEFAULT_GROQ_FAST_MODEL = "llama-3.1-8b-instant"
 DEFAULT_GROQ_TIMEOUT_SECONDS = 25.0
 DEFAULT_GROQ_MAX_TOKENS = 700
 
@@ -24,7 +25,7 @@ class GroqSettings:
     api_key: str
     model: str
     timeout: float
-    max_tokens: int
+    max_tokens: int = DEFAULT_GROQ_MAX_TOKENS
 
 
 def _parse_timeout(raw_value: str | None) -> float:
@@ -43,12 +44,40 @@ def _parse_max_tokens(raw_value: str | None) -> int:
     return max_tokens if max_tokens > 0 else DEFAULT_GROQ_MAX_TOKENS
 
 
-def load_groq_settings() -> GroqSettings:
+def _normalize_stage(stage: str | None) -> str | None:
+    normalized = (stage or "").strip().lower()
+    if normalized in {"fast", "narrative"}:
+        return normalized
+    return None
+
+
+def _resolve_stage_model(stage: str | None) -> str:
+    stage_key = _normalize_stage(stage)
+    if stage_key == "fast":
+        return os.getenv("GROQ_MODEL_FAST", "").strip() or DEFAULT_GROQ_FAST_MODEL
+    return os.getenv("GROQ_MODEL_NARRATIVE", "").strip() or os.getenv("GROQ_MODEL", "").strip() or DEFAULT_GROQ_MODEL
+
+
+def _resolve_stage_timeout(stage: str | None) -> float:
+    stage_key = _normalize_stage(stage)
+    if stage_key == "fast":
+        return _parse_timeout(os.getenv("GROQ_TIMEOUT_SECONDS_FAST") or os.getenv("GROQ_TIMEOUT_SECONDS"))
+    return _parse_timeout(os.getenv("GROQ_TIMEOUT_SECONDS_NARRATIVE") or os.getenv("GROQ_TIMEOUT_SECONDS"))
+
+
+def _resolve_stage_max_tokens(stage: str | None) -> int:
+    stage_key = _normalize_stage(stage)
+    if stage_key == "fast":
+        return _parse_max_tokens(os.getenv("GROQ_MAX_TOKENS_FAST") or os.getenv("GROQ_MAX_TOKENS"))
+    return _parse_max_tokens(os.getenv("GROQ_MAX_TOKENS_NARRATIVE") or os.getenv("GROQ_MAX_TOKENS"))
+
+
+def load_groq_settings(*, stage: str | None = None) -> GroqSettings:
     return GroqSettings(
         api_key=os.getenv("GROQ_API_KEY", "").strip(),
-        model=os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL).strip() or DEFAULT_GROQ_MODEL,
-        timeout=_parse_timeout(os.getenv("GROQ_TIMEOUT_SECONDS")),
-        max_tokens=_parse_max_tokens(os.getenv("GROQ_MAX_TOKENS")),
+        model=_resolve_stage_model(stage),
+        timeout=_resolve_stage_timeout(stage),
+        max_tokens=_resolve_stage_max_tokens(stage),
     )
 
 
@@ -105,7 +134,7 @@ def format_groq_error(error: Exception) -> LLMGatewayError:
         status_code = getattr(detail, "status_code", "desconhecido")
         body = getattr(detail, "text", "") or ""
         body_text = body[:240] if body else error_text[:240]
-        if str(status_code) == "429" or "raté limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
+        if str(status_code) == "429" or "rate limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
             retry_after = _extract_retry_delay_seconds(error_text) or _extract_retry_delay_seconds(body_text)
             message = "Limite de uso da Groq atingido no momento. Tente novamente em alguns instantes."
             if retry_after is not None:
@@ -114,7 +143,7 @@ def format_groq_error(error: Exception) -> LLMGatewayError:
             return LLMRateLimitError(message)
         return LLMGatewayError(f"Groq retornou erro HTTP {status_code}: {body_text}") 
 
-    if "raté limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
+    if "rate limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
         retry_after = _extract_retry_delay_seconds(error_text)
         message = "Limite de uso da Groq atingido no momento. Tente novamente em alguns instantes."
         if retry_after is not None:
@@ -152,7 +181,7 @@ def call_groq_messages(
     try:
         return _strip_reasoning_artifacts(response.choices[0].message.content)
     except (KeyError, IndexError, AttributeError) as error:
-        raise LLMGatewayError("Resposta invalida recebida da Groq.") from error
+        raise LLMGatewayError("Resposta inválida recebida da Groq.") from error
 
 
 def build_groq_chat_model(*, temperature: float, settings: GroqSettings | None = None) -> Any:

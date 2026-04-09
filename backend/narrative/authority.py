@@ -8,25 +8,43 @@ from game_content import MONSTERS
 
 
 _MODE_ACTION_KINDS = {
-    "exploration": ["observe", "investigate", "move", "dialogue", "recover"],
-    "dialogue": ["dialogue", "observe", "investigate", "move"],
-    "combat": ["combat", "defend", "escape", "observe"],
-    "roll_pending": ["combat", "defend", "escape", "observe"],
-    "post_combat": ["loot", "observe", "investigate", "move", "recover"],
-    "puzzle": ["investigate", "ritual", "observe", "move"],
+    "exploration": ["observe", "investigate", "move", "stealth", "survival", "dialogue", "recover", "craft"],
+    "dialogue": ["dialogue", "observe", "investigate", "move", "stealth"],
+    "combat": ["combat", "defend", "escape", "observe", "stealth"],
+    "roll_pending": ["combat", "defend", "escape", "observe", "stealth"],
+    "post_combat": ["loot", "observe", "investigate", "move", "survival", "recover", "craft"],
+    "puzzle": ["investigate", "ritual", "observe", "move", "craft"],
 }
 
 _ACTION_KEYWORDS = {
-    "combat": ["atacar", "golpear", "investir", "ofensiva", "pressionar", "ferir", "intimidar"],
-    "defend": ["defender", "guardar", "cobertura", "proteger", "bloquear", "posicao"],
+    "combat": [
+        "atacar",
+        "golpear",
+        "investir",
+        "ofensiva",
+        "pressionar",
+        "ferir",
+        "intimidar",
+        "alvejar",
+        "desarmar",
+        "duelar",
+        "estocar",
+        "flanquear",
+        "imobilizar",
+        "repelir",
+    ],
+    "defend": ["defender", "guardar", "cobertura", "proteger", "bloquear", "posicao", "blindar", "entrincheirar"],
     "escape": ["recuar", "fugir", "afastar", "retirada", "sair da area"],
     "loot": ["loot", "saque", "revistar", "vasculhar", "recolher", "corpo", "itens"],
     "observe": ["observar", "avaliar", "medir", "escutar", "vigiar", "ler o terreno"],
     "investigate": ["examinar", "investigar", "procurar", "analisar", "rastro", "pistas"],
     "dialogue": ["falar", "responder", "perguntar", "negociar", "conversar", "dialogo"],
-    "move": ["seguir", "avancar", "mudar de posicao", "aproximar", "contornar", "prosseguir"],
+    "move": ["seguir", "avancar", "mudar de posicao", "aproximar", "contornar", "prosseguir", "atravessar", "escalar"],
+    "stealth": ["esconder", "ocultar", "camuflar", "infiltrar", "espreitar", "emboscar", "despistar", "dissimular"],
+    "survival": ["rastrear", "cacar", "perseguir", "sobreviver", "explorar", "trilha", "farejar", "desbravar"],
     "recover": ["respirar", "descansar", "curar", "recompor", "recuperar"],
-    "ritual": ["simbolo", "enigma", "altar", "espelho", "ritual", "hipotese"],
+    "craft": ["forjar", "reparar", "construir", "lapidar", "fundir", "barricada", "afiar", "adornar", "hastear"],
+    "ritual": ["simbolo", "enigma", "altar", "espelho", "ritual", "hipotese", "banir", "bendizer", "entoar", "dissipar"],
 }
 
 _GENERIC_ENTITY_TERMS = [

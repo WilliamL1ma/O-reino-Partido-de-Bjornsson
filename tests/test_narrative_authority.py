@@ -1,3 +1,4 @@
+import builtins
 import sys
 import unittest
 from pathlib import Path
@@ -35,7 +36,10 @@ class NarrativeAuthorityTests(unittest.TestCase):
         self.assertEqual(authority["interaction_type"], "post_combat")
         self.assertEqual(authority["recent_outcome"], "victory")
         self.assertEqual(authority["mode_transition_signal"], "post_combat_loot_window")
-        self.assertEqual(authority["allowed_action_kinds"], ["loot", "observe", "investigate", "move", "recover"])
+        self.assertEqual(
+            authority["allowed_action_kinds"],
+            ["loot", "observe", "investigate", "move", "survival", "recover", "craft"],
+        )
         self.assertTrue(authority["target_locked"])
         self.assertTrue(authority["post_combat_pending_loot"])
         self.assertEqual(authority["inventory_truth"], ["Flor de Prata"])
@@ -146,6 +150,22 @@ class NarrativeAuthorityTests(unittest.TestCase):
         )
 
         self.assertEqual(actions[0], "Revistar com calma o corpo de Goblin Cacador")
+
+    def test_build_narrative_authority_adds_new_exploration_categories(self) -> None:
+        authority = build_narrative_authority(
+            scene_key="chapter_entry",
+            scene={"type": "narrative", "title": "Trilha", "lead": "A mata se fecha alem da estrada."},
+            allowed_next_scenes=["encounter_goblin", "act_two_crossroads"],
+            recent_messages=[],
+            pending_event=None,
+            context_hint=None,
+            recent_reward=None,
+        )
+
+        self.assertEqual(
+            authority["allowed_action_kinds"],
+            ["observe", "investigate", "move", "stealth", "survival", "dialogue", "recover", "craft"],
+        )
 
     def test_build_narrative_authority_reuses_persisted_snapshot_when_scene_matches(self) -> None:
         authority = build_narrative_authority(
@@ -263,8 +283,58 @@ class NarrativeAuthorityTests(unittest.TestCase):
         self.assertNotIn("timeout", payload)
         self.assertEqual(payload["authoritative_state"]["current_scene_state"]["scene_key"], "encounter_goblin")
 
+    def test_build_master_graph_state_does_not_import_master_graph(self) -> None:
+        character = SimpleNamespace(
+            id=21,
+            name="Rowan",
+            race_name="Humano",
+            class_name="Wizard",
+            personality="Calmo",
+            objective="Sobreviver",
+            fear="Perder o controle",
+            strength=10,
+            dexterity=12,
+            constitution=11,
+            intelligence=15,
+            wisdom=13,
+            charisma=9,
+            perception=14,
+            experience=20,
+            gold=7,
+            story_scene="encounter_goblin",
+            story_act=1,
+        )
+        original_import = builtins.__import__
+
+        def _guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == "master_graph":
+                raise AssertionError("build_master_graph_state should not import master_graph")
+            return original_import(name, globals, locals, fromlist, level)
+
+        with (
+            patch("builtins.__import__", new=_guarded_import),
+            patch("narrative.turn_service.get_story_flags", return_value={"chapter_started": True}),
+            patch("narrative.turn_service.get_story_inventory", return_value=[{"name": "Flor de Prata"}]),
+            patch("narrative.turn_service.get_pending_event", return_value=None),
+            patch("narrative.turn_service.get_context_hint", return_value=None),
+            patch("narrative.turn_service.get_recent_reward", return_value=None),
+            patch("narrative.turn_service.get_authority_snapshot", return_value={"scene_key": "encounter_goblin"}),
+            patch("narrative.turn_service.build_lore_packet", return_value={"chapter": "I"}),
+        ):
+            payload = build_master_graph_state(
+                character,
+                {"title": "Emboscada", "lead": "Um goblin vigia a passagem.", "type": "encounter"},
+                [SimpleNamespace(role="gm", content="O goblin rosna.")],
+                "Resumo.",
+                mode="turn",
+                player_message="Eu observo.",
+            )
+
+        self.assertEqual(payload["current_scene"], "encounter_goblin")
+        self.assertEqual(payload["authoritative_state"]["current_scene_state"]["scene_key"], "encounter_goblin")
+
     def test_invoke_and_finalize_master_graph_returns_clean_payload(self) -> None:
-        graph_staté = {
+        graph_state = {
             "authoritative_state": {
                 "interaction_mode": "post_combat",
                 "allowed_action_kinds": ["loot", "observe", "investigate", "move", "recover"],
@@ -292,6 +362,68 @@ class NarrativeAuthorityTests(unittest.TestCase):
 
         self.assertEqual(result.payload["narration"], "O goblin cai sem voltar a ameaçar você.")
         self.assertEqual(result.payload["suggested_actions"], ["Revistar com calma o corpo de Goblin Cacador"])
+
+    def test_invoke_and_finalize_master_graph_preserves_empty_suggestions_when_graph_blocks_them(self) -> None:
+        graph_state = {
+            "authoritative_state": {
+                "interaction_mode": "combat",
+                "allowed_action_kinds": ["combat", "defend", "escape", "observe"],
+                "current_target": "Goblin Cacador",
+                "target_locked": True,
+            },
+            "fallback_actions": [
+                "Medir a reacao imediata de Goblin Cacador",
+                "Ajustar sua posicao antes de se expor demais",
+            ],
+        }
+
+        def _graph_runner(_state: dict) -> dict:
+            return {
+                "result_narration": "O goblin salta das sombras.",
+                "result_event": {
+                    "type": "encounter",
+                    "attribute": "strength",
+                    "difficulty": 14,
+                    "monster_name": "Goblin Cacador",
+                },
+                "result_next_scene": None,
+                "result_story_event": None,
+                "result_suggested_actions": [],
+                "suggestions_blocked": True,
+            }
+
+        result = invoke_and_finalize_master_graph(graph_state, _graph_runner)
+
+        self.assertEqual(result.payload["event"]["type"], "encounter")
+        self.assertEqual(result.payload["suggested_actions"], [])
+
+    def test_finalize_master_output_preserves_empty_suggestions_for_story_event(self) -> None:
+        payload = finalize_master_output(
+            {
+                "result_narration": "Os galhos se abrem para uma investida repentina.",
+                "result_event": None,
+                "result_next_scene": None,
+                "result_story_event": {
+                    "type": "forced_encounter",
+                    "scene": "encounter_goblin",
+                    "monster_slug": "goblin-cacador",
+                },
+                "result_suggested_actions": [],
+                "suggestions_blocked": True,
+            },
+            {
+                "interaction_mode": "exploration",
+                "allowed_action_kinds": ["observe", "investigate", "move", "dialogue", "recover"],
+                "current_target": "Goblin Cacador",
+            },
+            [
+                "Observar melhor o ambiente",
+                "Avancar com cautela",
+            ],
+        )
+
+        self.assertEqual(payload["story_event"]["scene"], "encounter_goblin")
+        self.assertEqual(payload["suggested_actions"], [])
 
 
 if __name__ == "__main__":

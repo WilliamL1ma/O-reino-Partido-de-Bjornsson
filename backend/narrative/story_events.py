@@ -15,6 +15,7 @@ class AppliedStoryEvent:
     act: int
     pending_event: dict
     authority_snapshot: dict | None
+    announcement_text: str
 
 
 def _build_authority_snapshot(authority: dict, event: dict) -> dict | None:
@@ -32,7 +33,7 @@ def _build_authority_snapshot(authority: dict, event: dict) -> dict | None:
     snapshot["recent_outcome"] = "awaiting_roll"
     snapshot["mode_transition_signal"] = "pending_roll"
     snapshot["danger_level"] = "high"
-    snapshot["allowed_action_kinds"] = ["combat", "defend", "escape", "observe"]
+    snapshot["allowed_action_kinds"] = ["combat", "defend", "escape", "observe", "stealth"]
     snapshot["target_locked"] = bool(monster_name)
     snapshot["post_combat_pending_loot"] = False
     snapshot["pending_event_truth"] = {
@@ -105,6 +106,32 @@ def story_event_from_next_scene(
     )
 
 
+def _clean_story_event_text(text: str) -> str:
+    return " ".join(str(text or "").strip().split())
+
+
+def _default_forced_encounter_announcement(monster_name: str) -> str:
+    return (
+        f"{monster_name} irrompe no caminho sem aviso, fechando a distância em um só impulso. "
+        "O próximo instante depende da sua reação."
+    )
+
+
+def build_story_event_announcement(story_event: dict, pending_event: dict, monster_name: str) -> str:
+    trigger_text = _clean_story_event_text(str(story_event.get("trigger_text", "")))
+    if trigger_text:
+        if trigger_text[-1] not in ".!?":
+            trigger_text = f"{trigger_text}."
+        base_text = trigger_text
+    else:
+        base_text = _default_forced_encounter_announcement(monster_name)
+
+    stakes = _clean_story_event_text(str(pending_event.get("stakes", "")))
+    if stakes and stakes.lower() not in base_text.lower():
+        return f"{base_text} {stakes}"
+    return base_text
+
+
 def apply_story_event(
     character: Character,
     story_event: dict | None,
@@ -143,9 +170,11 @@ def apply_story_event(
         "monster_name": monster["name"],
     }
     authority_snapshot = _build_authority_snapshot(authority, pending_event)
+    announcement_text = build_story_event_announcement(story_event, pending_event, monster["name"])
     return AppliedStoryEvent(
         scene_key=scene_key,
         act=CHAPTER_SCENES.get(scene_key, {}).get("act", character.story_act),
         pending_event=pending_event,
         authority_snapshot=authority_snapshot,
+        announcement_text=announcement_text,
     )

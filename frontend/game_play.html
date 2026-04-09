@@ -47,11 +47,17 @@
 
       <main class="game-layout">
         <section class="player-panel game-panel">
-          <p class="eyebrow">{{ scene.eyebrow }}</p>
+          <p class="eyebrow" id="game-scene-eyebrow">{{ scene.eyebrow }}</p>
           <h2>Mestre de Elandoria</h2>
           <p class="player-panel__lead">
             O mestre conduz a jornada no presente de Elandoria. Ele descreve a situação, oferece caminhos possíveis e aciona rolagens quando a cena exigir.
           </p>
+
+          <article class="player-card game-current-moment" id="game-current-moment-panel">
+            <p class="player-card__label">Momento atual</p>
+            <h3 class="game-current-moment__title" id="game-current-moment-title">{{ current_moment.title }}</h3>
+            <p class="game-current-moment__description" id="game-current-moment-description">{{ current_moment.description }}</p>
+          </article>
 
           {% if scene.type == "complete" %}
           <div class="game-scene-context">
@@ -101,7 +107,7 @@
               {% if recent_messages %}
                 {% for message in recent_messages %}
                 <article class="game-chat__message game-chat__message--{{ message.role }}">
-                  <strong>{% if message.role == "gm" %}Mestre{% else %}Voce{% endif %}</strong>
+                  <strong>{% if message.role == "gm" %}Mestre{% else %}Você{% endif %}</strong>
                   <p>{{ message.content }}</p>
                 </article>
                 {% endfor %}
@@ -131,7 +137,7 @@
           </article>
 
           <article class="player-card game-chat__suggestions-text" id="game-suggestions-panel" {% if pending_event %}hidden{% endif %}>
-            <p><strong>Sugestoes do mestre</strong></p>
+            <p><strong>Sugestões do mestre</strong></p>
             <ol id="game-suggestions-list">
               {% if pending_event %}
               <li>As sugestões ficam disponíveis novamente depois que a rolagem pendente for resolvida.</li>
@@ -167,18 +173,18 @@
             <p class="player-card__label">Personagem</p>
             <ul class="player-card__list">
               <li><strong>Nome:</strong> {{ character.name }}</li>
-              <li><strong>Raca:</strong> {{ character.race_name }}</li>
+              <li><strong>Raça:</strong> {{ character.race_name }}</li>
               <li><strong>Classe:</strong> {{ translate_class_name(character.class_name) }}</li>
-              <li><strong>Ato atual:</strong> {{ character.story_act }}</li>
+              <li><strong>Ato atual:</strong> <span id="game-progress-act">{{ character.story_act }}</span></li>
             </ul>
           </article>
 
           <article class="player-card">
             <p class="player-card__label">Progresso</p>
             <ul class="player-card__list">
-              <li><strong>XP:</strong> {{ character.experience }}</li>
-              <li><strong>Ouro:</strong> {{ character.gold }}</li>
-              <li><strong>Marco do capítulo:</strong> {{ scene.title }}</li>
+              <li><strong>XP:</strong> <span id="game-progress-xp">{{ character.experience }}</span></li>
+              <li><strong>Ouro:</strong> <span id="game-progress-gold">{{ character.gold }}</span></li>
+              <li><strong>Marco do capítulo:</strong> <span id="game-progress-scene-title">{{ scene.title }}</span></li>
             </ul>
             <div class="hero__actions">
               <form action="/jogo/resetar-campanha" method="post">
@@ -201,7 +207,7 @@
 
           <article class="player-card">
             <p class="player-card__label">Inventário do capítulo</p>
-            <ul class="player-card__list">
+            <ul class="player-card__list" id="game-inventory-list">
               {% if inventory %}
                 {% for item in inventory[-8:] %}
                 <li>
@@ -215,24 +221,24 @@
             </ul>
           </article>
 
-          {% if recent_reward %}
-          <article class="player-card">
-            <p class="player-card__label">Ultimo saque</p>
+          <article class="player-card" id="game-recent-reward-panel" {% if not recent_reward %}hidden{% endif %}>
+            <p class="player-card__label">Último saque</p>
             <ul class="player-card__list">
-              <li><strong>Monstro:</strong> {{ recent_reward.monster_name }}</li>
-              <li><strong>XP:</strong> {{ recent_reward.xp_gain }}</li>
-              <li><strong>Ouro:</strong> {{ recent_reward.gold_gain }}</li>
+              <li><strong>Monstro:</strong> <span id="game-recent-reward-monster">{{ recent_reward.monster_name if recent_reward else "" }}</span></li>
+              <li><strong>XP:</strong> <span id="game-recent-reward-xp">{{ recent_reward.xp_gain if recent_reward else "" }}</span></li>
+              <li><strong>Ouro:</strong> <span id="game-recent-reward-gold">{{ recent_reward.gold_gain if recent_reward else "" }}</span></li>
               <li>
                 <strong>Drops:</strong>
-                {% if recent_reward.loot_names %}
-                {{ recent_reward.loot_names|join(", ") }}
-                {% else %}
-                Nenhum item raro
-                {% endif %}
+                <span id="game-recent-reward-loot">
+                  {% if recent_reward and recent_reward.loot_names %}
+                  {{ recent_reward.loot_names|join(", ") }}
+                  {% elif recent_reward %}
+                  Nenhum item raro
+                  {% endif %}
+                </span>
               </li>
             </ul>
           </article>
-          {% endif %}
 
         </aside>
       </main>
@@ -261,6 +267,7 @@
       </div>
     </div>
 
+    <script src="/game_ui_helpers.js"></script>
     <script src="/script.js"></script>
   </body>
 </html>

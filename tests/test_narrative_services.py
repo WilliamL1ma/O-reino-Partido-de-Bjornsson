@@ -1,3 +1,4 @@
+import json
 import sys
 import unittest
 from contextlib import contextmanager
@@ -24,12 +25,14 @@ from narrative.state_store import (
     get_authority_snapshot,
     get_context_hint as get_persisted_context_hint,
     get_pending_event,
+    get_pending_roll_resolution,
     get_recent_reward as get_persisted_recent_reward,
     get_story_flags,
     get_story_inventory,
     get_suggested_actions as get_persisted_suggested_actions,
     set_authority_snapshot,
     set_context_hint as set_persisted_context_hint,
+    set_pending_roll_resolution,
     set_recent_reward as set_persisted_recent_reward,
     store_suggested_actions as store_persisted_suggested_actions,
 )
@@ -173,6 +176,44 @@ class NarrativeStateStoreTests(unittest.TestCase):
         self.assertEqual(snapshot["pending_event_truth"]["attribute"], "strength")
         self.assertEqual(snapshot["current_scene_state"]["scene_phase"], "combat")
         self.assertTrue(snapshot["current_scene_state"]["has_pending_event"])
+
+    def test_pending_roll_resolution_roundtrip_normalizes_set_values(self) -> None:
+        character = SimpleNamespace(
+            id=9,
+            story_flags='{"chapter_started": true}',
+            story_inventory="[]",
+            pending_event=None,
+        )
+
+        with patch("narrative.state_store.session_scope", lambda: _fake_session_scope(character)):
+            set_pending_roll_resolution(
+                9,
+                {
+                    "event": {"type": "encounter", "monster_slug": "goblin-cacador"},
+                    "roll_result": {
+                        "roll": 16,
+                        "monster": {
+                            "name": "Goblin Cacador",
+                            "favored_tactics": {"precision", "mystic"},
+                        },
+                    },
+                },
+            )
+
+        stored_flags = json.loads(character.story_flags)
+        stored_resolution = stored_flags["narrative_runtime"]["pending_roll_resolution"]
+        self.assertIsInstance(stored_resolution["roll_result"]["monster"]["favored_tactics"], list)
+        self.assertCountEqual(
+            stored_resolution["roll_result"]["monster"]["favored_tactics"],
+            ["precision", "mystic"],
+        )
+
+        restored_resolution = get_pending_roll_resolution(character)
+        self.assertEqual(restored_resolution["roll_result"]["monster"]["name"], "Goblin Cacador")
+        self.assertCountEqual(
+            restored_resolution["roll_result"]["monster"]["favored_tactics"],
+            ["precision", "mystic"],
+        )
 
 
 if __name__ == "__main__":

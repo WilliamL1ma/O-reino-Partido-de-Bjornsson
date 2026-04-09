@@ -18,27 +18,42 @@ class RollServiceTests(unittest.TestCase):
         pending_event = {"label": "FOR", "roll_type": "Ataque"}
         summarize_memory = Mock()
 
-        with patch.object(
-            roll_service,
-            "resolve_pending_roll_with_master",
-            return_value={
-                "roll_result": {
-                    "roll": 17,
-                    "attribute_bonus": 3,
-                    "total": 20,
-                    "difficulty": 15,
-                    "success": True,
-                    "partial": False,
-                    "decisive": True,
-                    "xp_gain": 45,
-                    "gold_gain": 12,
-                    "loot": [{"name": "Presa de Goblin"}],
-                    "monster": {"name": "Goblin Cacador"},
+        with (
+            patch.object(
+                roll_service,
+                "resolve_pending_roll_with_master",
+                return_value={
+                    "roll_result": {
+                        "roll": 17,
+                        "attribute_bonus": 3,
+                        "total": 20,
+                        "difficulty": 15,
+                        "success": True,
+                        "partial": False,
+                        "decisive": True,
+                        "xp_gain": 45,
+                        "gold_gain": 12,
+                        "loot": [{"name": "Presa de Goblin"}],
+                        "monster": {"name": "Goblin Cacador"},
+                    },
+                    "gm_message": "O golpe abre a guarda da criatura.",
+                    "suggested_actions": ["Revistar o corpo", "Observar o entorno"],
+                    "reward_update": {"loot_names": ["Presa de Goblin"]},
                 },
-                "gm_message": "O golpe abre a guarda da criatura.",
-                "suggested_actions": ["Revistar o corpo", "Observar o entorno"],
-                "reward_update": {"loot_names": ["Presa de Goblin"]},
-            },
+            ),
+            patch.object(
+                roll_service,
+                "build_live_view_state",
+                return_value={
+                    "scene": {"key": "encounter_goblin", "title": "Emboscada"},
+                    "current_moment": {"title": "Emboscada", "description": "O perigo cedeu."},
+                    "pending_event": None,
+                    "suggested_actions": ["Revistar o corpo", "Observar o entorno"],
+                    "recent_reward": {"monster_name": "Goblin Cacador"},
+                    "inventory_preview": [{"name": "Presa de Goblin", "value": None}],
+                    "progress": {"act": 1, "experience": 45, "gold": 12},
+                },
+            ),
         ):
             snapshot = roll_service.run_roll_resolution(
                 character,
@@ -59,6 +74,9 @@ class RollServiceTests(unittest.TestCase):
                 "success": True,
                 "partial": False,
                 "decisive": True,
+                "crítical_failure": False,
+                "crítical_success": False,
+                "outcome_label": "sucesso decisivo",
                 "gm_message": "O golpe abre a guarda da criatura.",
                 "suggested_actions": ["Revistar o corpo", "Observar o entorno"],
                 "xp_gain": 45,
@@ -66,6 +84,15 @@ class RollServiceTests(unittest.TestCase):
                 "loot": [{"name": "Presa de Goblin"}],
                 "loot_names": ["Presa de Goblin"],
                 "monster_name": "Goblin Cacador",
+                "view_state": {
+                    "scene": {"key": "encounter_goblin", "title": "Emboscada"},
+                    "current_moment": {"title": "Emboscada", "description": "O perigo cedeu."},
+                    "pending_event": None,
+                    "suggested_actions": ["Revistar o corpo", "Observar o entorno"],
+                    "recent_reward": {"monster_name": "Goblin Cacador"},
+                    "inventory_preview": [{"name": "Presa de Goblin", "value": None}],
+                    "progress": {"act": 1, "experience": 45, "gold": 12},
+                },
             },
         )
 

@@ -5,6 +5,7 @@ from typing import Callable
 
 from game_content import MONSTERS
 from lore import build_lore_packet
+from master_state import prepare_master_graph_state
 from models import Character, GameMessage
 
 from .authority import build_narrative_authority, build_scene_fallback_actions
@@ -133,7 +134,7 @@ def build_master_graph_state(
     roll_resolution: dict | None = None,
 ) -> dict:
     current_scene = character.story_scene or "chapter_entry"
-    return build_master_graph_payload(
+    raw_payload = build_master_graph_payload(
         mode=mode,
         scene=scene,
         scene_key=current_scene,
@@ -150,17 +151,24 @@ def build_master_graph_state(
         player_message=player_message,
         roll_resolution=roll_resolution or {},
     )
+    return prepare_master_graph_state(raw_payload)
 
 
 def invoke_and_finalize_master_graph(
     graph_state: dict,
-    graph_runner: Callable[[dict], dict],
+    graph_runner: Callable[[dict], dict] | None = None,
 ) -> MasterTurnResult:
+    if graph_runner is None:
+        from master_graph import invoke_master_graph
+
+        graph_runner = invoke_master_graph
+
     graph_output = graph_runner(graph_state)
+    output_state = graph_output if isinstance(graph_output, dict) else {}
     payload = finalize_master_output(
         graph_output,
-        graph_state.get("authoritative_state", {}),
-        graph_state.get("fallback_actions", []),
+        output_state.get("authoritative_state", graph_state.get("authoritative_state", {})),
+        output_state.get("fallback_actions", graph_state.get("fallback_actions", [])),
     )
     return MasterTurnResult(
         graph_state=graph_state,

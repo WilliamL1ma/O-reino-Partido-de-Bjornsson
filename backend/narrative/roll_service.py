@@ -7,10 +7,7 @@ from dataclasses import asdict, dataclass
 from game_content import MONSTERS
 from models import Character
 
-from .game_master_service import (
-    build_default_actions_for_character,
-    build_master_graph_state,
-)
+from .game_master_service import build_default_actions_for_character, build_live_view_state
 from .memory_service import get_latest_memory_summary, get_recent_game_messages, store_game_messages
 from .scene_flow import build_scene_context
 from .state_store import (
@@ -26,7 +23,7 @@ from .state_store import (
     set_recent_reward,
     store_suggested_actions,
 )
-from .turn_service import invoke_and_finalize_master_graph
+from .turn_service import build_master_graph_state, invoke_and_finalize_master_graph
 
 
 @dataclass(frozen=True)
@@ -69,6 +66,7 @@ class RollResolutionSnapshot:
     loot: list[dict]
     loot_names: list[str]
     monster_name: str | None
+    view_state: dict
 
     def to_response(self) -> dict:
         payload = asdict(self)
@@ -76,10 +74,15 @@ class RollResolutionSnapshot:
         return payload
 
 
-def _invoke_master_graph(graph_state: dict) -> dict:
-    from master_graph import invoke_master_graph
+def _critical_flag(roll_result: dict, key: str) -> bool:
+    return bool(roll_result.get(key, roll_result.get(key.replace("í", "i"), False)))
 
-    return invoke_master_graph(graph_state)
+
+def _safe_get_pending_roll_resolution(character: Character) -> dict | None:
+    try:
+        return get_pending_roll_resolution(character)
+    except AttributeError:
+        return None
 
 
 def _build_post_roll_authority_snapshot(character: Character, roll_result: dict) -> dict | None:
@@ -102,9 +105,9 @@ def _build_post_roll_authority_snapshot(character: Character, roll_result: dict)
         "danger_level": "medium" if success else "elevated",
         "recent_outcome": "victory" if success else "ongoing",
         "mode_transition_signal": "post_combat_loot_window" if success and loot_names else "active_threat",
-        "allowed_action_kinds": ["loot", "observe", "investigate", "move", "recover"]
+        "allowed_action_kinds": ["loot", "observe", "investigate", "move", "survival", "recover", "craft"]
         if success
-        else ["combat", "defend", "escape", "observe"],
+        else ["combat", "defend", "escape", "observe", "stealth"],
         "target_locked": True,
         "post_combat_pending_loot": bool(success and loot_names),
         "recent_reward_truth": {
@@ -256,10 +259,10 @@ def build_loot_summary_text(roll_result: dict) -> str:
 
 
 def _outcome_label(roll_result: dict) -> str:
-    if roll_result["crítical_failure"]:
+    if _critical_flag(roll_result, "crítical_failure"):
         return "falha crítica"
-    if roll_result["crítical_success"]:
-        return "sucesso critico"
+    if _critical_flag(roll_result, "crítical_success"):
+        return "sucesso crítico"
     if roll_result["decisive"]:
         return "sucesso decisivo"
     if roll_result["success"]:
@@ -273,17 +276,17 @@ def _fallback_roll_consequence_text(roll_result: dict, pending_event: dict) -> s
     action_kind = str(pending_event.get("action_kind", "")).strip()
     monster_name = roll_result.get("monster", {}).get("name")
 
-    if roll_result["crítical_success"]:
+    if _critical_flag(roll_result, "crítical_success"):
         if action_kind in {"combat", "combat_magic"}:
             target = monster_name or "o alvo"
-            return f"O d20 cai perfeito. Seu golpe entra com maestria, quebra a resistencia de {target} e empurra a cena a seu favor sem deixar espaco para resposta imediata."
+            return f"O d20 cai perfeito. Seu golpe entra com maestria, quebra a resistência de {target} e empurra a cena a seu favor sem deixar espaço para resposta imediata."
         if action_kind == "observe":
-            return "Sua leitura do ambiente e absoluta. Nada relevante escapa aos seus sentidos, e a vantagem tatica vem inteira para suas maos."
+            return "Sua leitura do ambiente é absoluta. Nada relevante escapa aos seus sentidos, e a vantagem tática vem inteira para suas mãos."
         if action_kind == "dialogue":
-            return "Sua presenca domina o instante. Cada palavra acerta o tom exato, e a outra parte cede de forma clara diante da sua conducao."
+            return "Sua presença domina o instante. Cada palavra acerta o tom exato, e a outra parte cede de forma clara diante da sua condução."
         return "O resultado vem com maestria. A ação se completa de forma exemplar, com controle total da situação e vantagem evidente para você."
 
-    if roll_result["crítical_failure"]:
+    if _critical_flag(roll_result, "crítical_failure"):
         if action_kind in {"combat", "combat_magic"}:
             target = monster_name or "o alvo"
             return f"O pior resultado possível acontece. Sua ofensiva falha por completo, você se expõe demais e {target} ganha a iniciativa, forçando uma punição imediata na cena."
@@ -297,14 +300,14 @@ def _fallback_roll_consequence_text(roll_result: dict, pending_event: dict) -> s
         return "O impulso certo vem no momento exato, e a situação cede diante da sua resposta."
     if roll_result["partial"]:
         return "Você segura a pressão por pouco, mas a situação cobra um preço antes de ceder."
-    return "O momento escapa dos seus dedos e o perigo avanca antes que você consiga reagir."
+    return "O momento escapa dos seus dedos e o perigo avança antes que você consiga reagir."
 
 
 def resolve_pending_roll_with_master(character: Character, pending_event: dict) -> dict:
-    stored_resolution = get_pending_roll_resolution(character)
+    stored_resolution = _safe_get_pending_roll_resolution(character)
     roll_result = None
     if stored_resolution and stored_resolution.get("event") == pending_event:
-        candidaté = stored_resolution.get("roll_result")
+        candidate = stored_resolution.get("roll_result")
         if isinstance(candidate, dict):
             roll_result = candidate
 
@@ -313,7 +316,7 @@ def resolve_pending_roll_with_master(character: Character, pending_event: dict) 
 
     scene = build_scene_context(character.story_scene or "chapter_entry", get_story_flags(character), get_story_inventory(character))
     latest_summary = get_latest_memory_summary(character.id)
-    resolution_staté = {
+    resolution_state = {
         "character_name": character.name,
         "scene": scene["title"],
         "event": pending_event,
@@ -326,7 +329,7 @@ def resolve_pending_roll_with_master(character: Character, pending_event: dict) 
     }
 
     try:
-        graph_staté = build_master_graph_state(
+        graph_state = build_master_graph_state(
             character,
             scene,
             get_recent_game_messages(character.id, limit=6),
@@ -334,7 +337,7 @@ def resolve_pending_roll_with_master(character: Character, pending_event: dict) 
             mode="resolution",
             roll_resolution=resolution_state,
         )
-        resolution_result = invoke_and_finalize_master_graph(graph_state, _invoke_master_graph)
+        resolution_result = invoke_and_finalize_master_graph(graph_state)
         finalized_resolution = resolution_result.payload
         consequence_text = finalized_resolution["narration"]
         suggested_actions = finalized_resolution["suggested_actions"] or build_default_actions_for_character(
@@ -345,7 +348,7 @@ def resolve_pending_roll_with_master(character: Character, pending_event: dict) 
         consequence_text = _fallback_roll_consequence_text(roll_result, pending_event)
         suggested_actions = build_default_actions_for_character(character, character.story_scene or "chapter_entry")
 
-    reward_updaté = apply_roll_rewards(character, roll_result)
+    reward_update = apply_roll_rewards(character, roll_result)
     clear_pending_event(character.id)
     clear_pending_roll_resolution(character.id)
     store_suggested_actions(character.id, suggested_actions)
@@ -369,10 +372,10 @@ def resolve_pending_roll_with_master(character: Character, pending_event: dict) 
 
 
 def run_roll_start(character: Character, pending_event: dict) -> RollStartSnapshot:
-    stored_resolution = get_pending_roll_resolution(character)
+    stored_resolution = _safe_get_pending_roll_resolution(character)
     roll_result = None
     if stored_resolution and stored_resolution.get("event") == pending_event:
-        candidaté = stored_resolution.get("roll_result")
+        candidate = stored_resolution.get("roll_result")
         if isinstance(candidate, dict):
             roll_result = candidate
 
@@ -395,8 +398,8 @@ def run_roll_start(character: Character, pending_event: dict) -> RollStartSnapsh
         success=roll_result["success"],
         partial=roll_result["partial"],
         decisive=roll_result["decisive"],
-        crítical_failure=roll_result["crítical_failure"],
-        crítical_success=roll_result["crítical_success"],
+        crítical_failure=_critical_flag(roll_result, "crítical_failure"),
+        crítical_success=_critical_flag(roll_result, "crítical_success"),
         outcome_label=_outcome_label(roll_result),
     )
 
@@ -406,13 +409,19 @@ def run_roll_resolution(
     pending_event: dict,
     *,
     summarize_memory: Callable[[Character], None] | None = None,
+    refresh_character: Callable[[int], Character | None] | None = None,
 ) -> RollResolutionSnapshot:
     resolution_snapshot = resolve_pending_roll_with_master(character, pending_event)
+    snapshot_character = refresh_character(character.id) if refresh_character else character
+    if snapshot_character is None:
+        snapshot_character = character
+
     if summarize_memory is not None:
-        summarize_memory(character)
+        summarize_memory(snapshot_character)
 
     roll_result = resolution_snapshot["roll_result"]
-    reward_updaté = resolution_snapshot["reward_update"]
+    reward_update = resolution_snapshot["reward_update"]
+    view_state = build_live_view_state(snapshot_character)
     return RollResolutionSnapshot(
         roll=roll_result["roll"],
         attribute_label=pending_event["label"],
@@ -422,8 +431,8 @@ def run_roll_resolution(
         success=roll_result["success"],
         partial=roll_result["partial"],
         decisive=roll_result["decisive"],
-        crítical_failure=roll_result["crítical_failure"],
-        crítical_success=roll_result["crítical_success"],
+        crítical_failure=_critical_flag(roll_result, "crítical_failure"),
+        crítical_success=_critical_flag(roll_result, "crítical_success"),
         outcome_label=_outcome_label(roll_result),
         gm_message=resolution_snapshot["gm_message"],
         suggested_actions=resolution_snapshot["suggested_actions"],
@@ -432,5 +441,6 @@ def run_roll_resolution(
         loot=roll_result["loot"],
         loot_names=reward_update["loot_names"],
         monster_name=roll_result.get("monster", {}).get("name"),
+        view_state=view_state,
     )
 

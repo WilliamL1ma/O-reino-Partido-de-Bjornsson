@@ -39,11 +39,28 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "conjurar",
             "invocar",
             "encantar",
-            "amaldi",
+            "amaldic",
             "raio",
             "bola de fogo",
             "canalizar",
             "ritual ofensivo",
+            "queimar",
+            "congelar",
+            "eletrizar",
+            "envenenar",
+            "sangrar",
+            "enfeiticar",
+            "banir",
+            "contaminar",
+            "convocar",
+            "desintegrar",
+            "distorcer",
+            "drenar",
+            "eclipsar",
+            "embriagar",
+            "enlouquecer",
+            "flamejar",
+            "incendiar",
         ),
     ),
     (
@@ -58,9 +75,48 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "mentir",
             "intimid",
             "gritar com",
-            "amea",
+            "ameac",
             "perguntar",
             "responder",
+            "ordenar",
+            "comandar",
+            "barganh",
+            "clamar",
+        ),
+    ),
+    (
+        "stealth",
+        (
+            "espreitar",
+            "emboscar",
+            "infiltrar",
+            "ocultar",
+            "camuflar",
+            "esconder",
+            "furtiv",
+            "silenciosamente",
+            "despistar",
+            "dissimular",
+            "encobrir",
+            "guardar-se",
+        ),
+    ),
+    (
+        "survival",
+        (
+            "cacar",
+            "perseguir",
+            "rastrear",
+            "rastro",
+            "patrulhar",
+            "sobreviver",
+            "explorar",
+            "seguir trilha",
+            "afugentar",
+            "desbravar",
+            "farejar",
+            "irromper",
+            "naufragar",
         ),
     ),
     (
@@ -89,6 +145,23 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "inspecionar",
             "decifrar",
             "interpretar",
+            "descobrir",
+        ),
+    ),
+    (
+        "craft",
+        (
+            "forjar",
+            "fundir",
+            "lapidar",
+            "construir",
+            "reparar",
+            "erguer",
+            "montar uma barricada",
+            "afiar",
+            "adornar",
+            "firmar",
+            "hastear",
         ),
     ),
     (
@@ -96,6 +169,17 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
         (
             "mover",
             "empurrar",
+            "avancar",
+            "arremessar",
+            "arremesso",
+            "lancar",
+            "jogar longe",
+            "atravessar",
+            "escalar",
+            "cavalgar",
+            "montar",
+            "galopar",
+            "marchar",
             "puxar",
             "levantar",
             "arrastar",
@@ -106,6 +190,16 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "quebrar",
             "derrubar",
             "deslocar",
+            "abrir caminho",
+            "atravancar",
+            "arrombar",
+            "avancar-se",
+            "contornar",
+            "cruzar",
+            "descer",
+            "desferrolhar",
+            "encher",
+            "ladear",
         ),
     ),
     (
@@ -122,6 +216,33 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "acertar",
             "ferir",
             "lutar",
+            "desferir",
+            "perfurar",
+            "fender",
+            "esmagar",
+            "rasgar",
+            "enfrentar",
+            "subjugar",
+            "acoitar",
+            "acuar",
+            "alvejar",
+            "aniquilar",
+            "assaltar",
+            "ceifar",
+            "chicotear",
+            "decapitar",
+            "desarmar",
+            "dilacerar",
+            "duelar",
+            "empalar",
+            "estocar",
+            "exterminar",
+            "flanquear",
+            "fulminar",
+            "imobilizar",
+            "interceptar",
+            "mutilar",
+            "repelir",
         ),
     ),
     (
@@ -134,6 +255,11 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "segurar o golpe",
             "ficar em guarda",
             "guardar posicao",
+            "resistir",
+            "suportar",
+            "blindar",
+            "cobrir",
+            "entrincheirar",
         ),
     ),
     (
@@ -155,6 +281,7 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "meditar",
             "descansar",
             "recuperar",
+            "restaurar",
             "respirar fundo",
             "me recompor",
         ),
@@ -168,6 +295,13 @@ ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
             "consagrar",
             "ativar o altar",
             "invocacao",
+            "selar",
+            "dissipar",
+            "transmutar",
+            "purificar",
+            "sacrificar",
+            "bendizer",
+            "entoar",
         ),
     ),
 ]
@@ -197,8 +331,12 @@ def class_prefers_magic_combat(character: Character) -> bool:
 
 def classify_player_action(player_message: str) -> str | None:
     folded = _fold_text(player_message)
-    if not folded or folded.endswith("?"):
-        if not any(keyword in folded for keyword in ("atacar", "falar", "mover", "observar", "investigar")):
+    if not folded:
+        return None
+
+    if folded.endswith("?"):
+        all_keywords = [keyword for _action_kind, keywords in ACTION_PATTERNS for keyword in keywords]
+        if not any(keyword in folded for keyword in all_keywords):
             return None
 
     for action_kind, keywords in ACTION_PATTERNS:
@@ -218,9 +356,15 @@ def choose_roll_attribute(character: Character, action_kind: str) -> str:
         return "perception"
     if action_kind == "dialogue":
         return "charisma"
+    if action_kind == "stealth":
+        return "dexterity"
+    if action_kind == "survival":
+        return "wisdom"
     if action_kind == "move":
         return "strength"
     if action_kind == "investigate":
+        return "intelligence"
+    if action_kind == "craft":
         return "intelligence"
     if action_kind == "defend":
         return "constitution"
@@ -241,6 +385,9 @@ def _difficulty_by_action(action_kind: str, authority: dict) -> int:
         "observe": 11,
         "investigate": 12,
         "dialogue": 11,
+        "stealth": 13,
+        "survival": 12,
+        "craft": 12,
         "defend": 12,
         "escape": 13,
         "recover": 10,
@@ -289,6 +436,9 @@ def _build_roll_type(action_kind: str, attribute: str) -> str:
         "observe": "teste de percepcao",
         "investigate": "teste de investigacao",
         "dialogue": "teste social",
+        "stealth": "teste furtivo",
+        "survival": "teste de sobrevivencia",
+        "craft": "teste de oficio",
         "defend": "teste de defesa",
         "escape": "teste de fuga",
         "recover": "teste de recuperacao",
@@ -308,17 +458,23 @@ def _build_stakes(action_kind: str, monster_name: str | None) -> str:
         return "A percepcao do personagem vai decidir o que ele realmente consegue notar no ambiente."
     if action_kind == "dialogue":
         return "O carisma do personagem vai decidir como a outra parte recebe suas palavras."
+    if action_kind == "stealth":
+        return "A furtividade do personagem vai decidir se ele consegue agir sem se expor cedo demais."
+    if action_kind == "survival":
+        return "O instinto do personagem vai decidir se ele le o terreno, segue rastros ou suporta o ambiente."
     if action_kind == "investigate":
         return "A analise do personagem vai decidir se pistas relevantes aparecem agora."
+    if action_kind == "craft":
+        return "A tecnica do personagem vai decidir se a obra aguenta a pressao ou se desfaz no processo."
     if action_kind == "defend":
-        return "A reacao defensiva precisa ser resolvida no dado antes de definir o custo da pressão."
+        return "A reacao defensiva precisa ser resolvida no dado antes de definir o custo da pressao."
     if action_kind == "escape":
-        return "A fuga precisa ser resolvida no dado antes de definir se você abre distância."
+        return "A fuga precisa ser resolvida no dado antes de definir se voce abre distancia."
     if action_kind == "recover":
-        return "A tentativa de se recompor depende do controle do corpo sob pressão."
+        return "A tentativa de se recompor depende do controle do corpo sob pressao."
     if action_kind == "ritual":
         return "A canalizacao do poder precisa ser resolvida no dado antes de definir o efeito do ritual."
-    return "A situação exige uma rolagem antes que a cena possa ser resolvida."
+    return "A situacao exige uma rolagem antes que a cena possa ser resolvida."
 
 
 def normalize_pending_event(

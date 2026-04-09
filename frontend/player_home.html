@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Area do Jogador | O Reino Partido de Bjornsson</title>
+    <title>Área do Jogador | O Reino Partido de Bjornsson</title>
     <meta
       name="description"
       content="Gerencie sua ficha e acompanhe sua entrada no Capitulo I."
@@ -29,12 +29,12 @@
             />
           </span>
           <div>
-            <p class="eyebrow">Area do jogador</p>
+            <p class="eyebrow">Área do jogador</p>
             <h1>O Reino Partido de Bjornsson</h1>
           </div>
         </a>
         <form action="/logout" method="post">
-          <button class="topbar__cta" type="submit">Sair da sessao</button>
+          <button class="topbar__cta" type="submit">Sair da sessão</button>
         </form>
       </header>
 
@@ -54,13 +54,13 @@
           <h2>{{ character.name }}</h2>
           <p class="player-panel__lead">
             {% if character.class_name %}
-            Seu personagem ja entrou no Capitulo I. Continue a jornada em Elandoria, acompanhe a ficha e revise os ganhos do capitulo.
+            Seu personagem já entrou no Capítulo I. Continue a jornada em Elandoria, acompanhe a ficha e revise os ganhos do capítulo.
             {% elif character.onboarding_step == "race" %}
-            Sua ficha base foi criada. Agora escolha a raca do personagem.
+            Sua ficha base foi criada. Agora escolha a raça do personagem.
             {% elif character.onboarding_step == "stats" %}
-            A raca foi definida. O proximo passo e rolar todos os status antes da classe.
+            A raça foi definida. O próximo passo é rolar todos os status antes da classe.
             {% else %}
-            A base do personagem esta pronta. O proximo passo e definir a classe.
+            A base do personagem está pronta. O próximo passo é definir a classe.
             {% endif %}
           </p>
 
@@ -78,7 +78,7 @@
               {% if character.onboarding_step == "stats" %}
               <div class="status-card__empty">
                 <strong>Status pendentes</strong>
-                <p>Abra o modal e role todos os atributos em sequencia.</p>
+                <p>Abra o modal e role todos os atributos em sequência.</p>
               </div>
               {% else %}
               <div class="stat-grid">
@@ -95,14 +95,14 @@
             <article class="player-card">
               <p class="player-card__label">Perfil</p>
               <ul class="player-card__list">
-                <li><strong>Personalidade:</strong> {{ character.personality or "Nao definida" }}</li>
-                <li><strong>Objetivo:</strong> {{ character.objective or "Nao definido" }}</li>
-                <li><strong>Medo/Fraqueza:</strong> {{ character.fear or "Nao definido" }}</li>
+                <li><strong>Personalidade:</strong> {{ character.personality or "Não definida" }}</li>
+                <li><strong>Objetivo:</strong> {{ character.objective or "Não definido" }}</li>
+                <li><strong>Medo/Fraqueza:</strong> {{ character.fear or "Não definido" }}</li>
               </ul>
             </article>
 
             <article class="player-card">
-              <p class="player-card__label">Proximas etapas</p>
+              <p class="player-card__label">Próximas etapas</p>
               <ul class="player-card__list">
                 <li><strong>Raca:</strong> {{ character.race_name or "Pendente" }}</li>
                 {% if character.race_status == "inferior" %}
@@ -111,7 +111,7 @@
                   provar seu valor para atingir a forma completa.
                 </li>
                 {% endif %}
-                <li><strong>Classe:</strong> {{ character.class_name or "Pendente" }}</li>
+                <li><strong>Classe:</strong> {{ translate_class_name(character.class_name) or "Pendente" }}</li>
                 <li><strong>Status:</strong> {{ character.onboarding_step }}</li>
               </ul>
             </article>
@@ -119,16 +119,16 @@
 
           <div class="hero__actions">
             {% if character.class_name %}
-            <a class="button button--primary" href="/jogo">Continuar capitulo</a>
+            <a class="button button--primary" href="/jogo">Continuar capítulo</a>
             <a class="button button--ghost" href="/jogador/ficha-completa">Ver ficha impressa</a>
             {% elif character.onboarding_step == "race" %}
               {% if character.race_slug in ["anjo", "demonio"] %}
               <button class="button button--ghost button--disabled" type="button" disabled>
-                Raca bloqueada apos arriscar a sorte
+                Raça bloqueada após arriscar a sorte
               </button>
               {% else %}
               <a class="button button--primary" href="/jogador/raca">
-                {% if character.race_name %}Trocar raca{% else %}Escolher raca{% endif %}
+                {% if character.race_name %}Trocar raça{% else %}Escolher raça{% endif %}
               </a>
               {% endif %}
             {% elif character.onboarding_step == "stats" %}
@@ -136,7 +136,7 @@
               Rolar status
             </button>
             {% if character.race_slug not in ["anjo", "demonio"] %}
-            <a class="button button--ghost" href="/jogador/raca">Trocar raca</a>
+            <a class="button button--ghost" href="/jogador/raca">Trocar raça</a>
             {% endif %}
             {% else %}
             <a class="button button--primary" href="/jogador/classe">Escolher classe</a>
@@ -158,13 +158,13 @@
       <div class="race-modal__backdrop"></div>
       <div class="race-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
         <p class="eyebrow">Rolagem de status</p>
-        <h2 id="status-modal-title" class="race-modal__title">Os atributos do personagem estao sendo revelados.</h2>
+        <h2 id="status-modal-title" class="race-modal__title">Os atributos do personagem estão sendo revelados.</h2>
         <p class="race-modal__text" id="status-modal-description">
-          O modal so sera encerrado depois que todos os status forem rolados.
+          O modal só será encerrado depois que todos os status forem rolados.
         </p>
         <div class="race-modal__meta">
           <span class="race-modal__threshold" id="status-modal-progress">0/7 rolados</span>
-          <span class="race-modal__status" id="status-modal-current">Proximo: FOR</span>
+          <span class="race-modal__status" id="status-modal-current">Próximo: FOR</span>
         </div>
         <div class="race-modal__stage">
           <div class="race-modal__pulse"></div>

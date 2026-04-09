@@ -64,15 +64,15 @@ def create_auth_blueprint(
                 return redirect(url_for(".register"))
 
             if password != confirm_password:
-                flash("A confirmacao de senha nao confere.", "error")
+                flash("A confirmação de senha não confere.", "error")
                 return redirect(url_for(".register"))
 
             if not password_is_strong(password):
                 flash("A senha deve ter pelo menos 8 caracteres.", "error")
                 return redirect(url_for(".register"))
 
-            birth_date = validate_birth_date(birth_date_raw)
-            if birth_date is None:
+            birth_daté = validate_birth_date(birth_date_raw)
+            if birth_daté is None:
                 flash("Informe uma data de nascimento valida.", "error")
                 return redirect(url_for(".register"))
 

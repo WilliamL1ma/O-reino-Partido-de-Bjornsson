@@ -112,9 +112,9 @@ def _snapshot_with_event_transition(authority: dict, event: dict | None) -> dict
         )
         snapshot["pending_event_truth"] = pending_event_truth
 
-        current_scene_state = snapshot.get("current_scene_state")
+        current_scene_staté = snapshot.get("current_scene_state")
         if not isinstance(current_scene_state, dict):
-            current_scene_state = {}
+            current_scene_staté = {}
         current_scene_state["has_pending_event"] = True
         current_scene_state["has_recent_reward"] = False
         current_scene_state["scene_phase"] = "roll_pending"
@@ -124,9 +124,9 @@ def _snapshot_with_event_transition(authority: dict, event: dict | None) -> dict
         snapshot["danger_level"] = str(snapshot.get("danger_level", "")).strip() or "medium"
         snapshot["allowed_action_kinds"] = ["observe", "investigate", "move", "dialogue", "recover"]
 
-        current_scene_state = snapshot.get("current_scene_state")
+        current_scene_staté = snapshot.get("current_scene_state")
         if not isinstance(current_scene_state, dict):
-            current_scene_state = {}
+            current_scene_staté = {}
         current_scene_state["has_pending_event"] = True
         current_scene_state["has_recent_reward"] = False
         current_scene_state["scene_phase"] = "roll_pending"
@@ -184,7 +184,7 @@ def build_recent_reward_message(recent_reward: dict) -> str:
     loot_text = ", ".join(loot_names) if loot_names else "nenhum item raro"
     return (
         f"Voce revira o corpo de {recent_reward['monster_name']} e confirma o saque real deixado pela criatura. "
-        f"Voce recebeu {loot_text}. O confronto tambem rendeu {recent_reward['xp_gain']} XP e {recent_reward['gold_gain']} de ouro."
+        f"Você recebeu {loot_text}. O confronto também rendeu {recent_reward['xp_gain']} XP e {recent_reward['gold_gain']} de ouro."
     )
 
 
@@ -214,7 +214,7 @@ def _build_pre_roll_message(narration: str, event: dict, player_message: str) ->
         if intent:
             first_sentence = f"Voce tenta {intent.lower()}."
 
-    stakes = str(event.get("stakes", "")).strip() or "A situacao precisa ser resolvida no dado antes de seguir."
+    stakes = str(event.get("stakes", "")).strip() or "A situação precisa ser resolvida no dado antes de seguir."
     monster_name = str(event.get("monster_name", "")).strip()
     event_type = str(event.get("type", "")).strip()
     action_kind = str(event.get("action_kind", "")).strip()
@@ -222,15 +222,15 @@ def _build_pre_roll_message(narration: str, event: dict, player_message: str) ->
     if event_type == "encounter" and monster_name:
         trigger = f"{monster_name} exige resposta imediata."
     elif action_kind == "investigate":
-        trigger = "Antes de concluir o que isso significa, a situacao pede um teste."
+        trigger = "Antes de concluir o que isso significa, a situação pede um teste."
     elif action_kind == "observe":
-        trigger = "Antes de ter certeza do que voce percebeu, a situacao pede um teste."
+        trigger = "Antes de ter certeza do que você percebeu, a situação pede um teste."
     elif action_kind == "dialogue":
-        trigger = "Antes de definir como isso e recebido, a situacao pede um teste."
+        trigger = "Antes de definir como isso é recebido, a situação pede um teste."
     elif action_kind == "move":
-        trigger = "Antes de saber se o movimento se completa, a situacao pede um teste."
+        trigger = "Antes de saber se o movimento se completa, a situação pede um teste."
     else:
-        trigger = "Antes de definir o desfecho, a situacao pede um teste."
+        trigger = "Antes de definir o desfecho, a situação pede um teste."
 
     pieces = [piece for piece in (first_sentence, trigger, stakes) if piece]
     return " ".join(pieces).strip()
@@ -239,7 +239,7 @@ def _build_pre_roll_message(narration: str, event: dict, player_message: str) ->
 def build_current_moment(character: Character, scene: dict, recent_messages: list[GameMessage]) -> dict:
     pending_event = get_pending_event(character)
     if pending_event:
-        title = pending_event.get("monster_name") or "Momento de decisao"
+        title = pending_event.get("monster_name") or "Momento de decisão"
         description = str(pending_event.get("stakes", "")).strip() or scene["lead"]
         return {"title": title, "description": description}
 
@@ -279,7 +279,7 @@ def build_game_view_snapshot(character: Character, *, groq_enabled: bool) -> Gam
 def ensure_story_initialized(character: Character) -> Character:
     if character.story_scene:
         return character
-    state = initial_story_state(get_story_inventory(character))
+    staté = initial_story_state(get_story_inventory(character))
     persist_story_state(character.id, **state)
     character.story_scene = state["scene"]
     character.story_act = state["act"]
@@ -290,7 +290,7 @@ def ensure_story_initialized(character: Character) -> Character:
 
 def _build_fallback_intro(scene: dict) -> str:
     actions = [
-        "ir ate a taverna mais proxima",
+        "ir até a taverna mais próxima",
         "observar a praca e o movimento das ruas",
         "falar com um guarda ou morador",
         "andar pelas vielas em busca de rumores",
@@ -298,7 +298,7 @@ def _build_fallback_intro(scene: dict) -> str:
     ]
     return (
         f"Voce esta em {scene['title']}. {scene['lead']} "
-        "A partir daqui, voce pode agir livremente pela conversa. "
+        "A partir daqui, você pode agir livremente pela conversa. "
         "Por exemplo: " + "; ".join(actions) + "."
     )
 
@@ -307,7 +307,7 @@ def prepare_intro_message(character: Character) -> IntroMessageResult:
     scene = build_scene_context(character.story_scene or "chapter_entry", get_story_flags(character), get_story_inventory(character))
     latest_summary = get_latest_memory_summary(character.id)
     try:
-        intro_state = build_master_graph_state(
+        intro_staté = build_master_graph_state(
             character,
             scene,
             [],
@@ -368,7 +368,7 @@ def run_master_turn(character: Character, player_message: str) -> dict:
 
     recent_messages = get_recent_game_messages(character.id, limit=6)
     latest_summary = get_latest_memory_summary(character.id)
-    graph_state = build_master_graph_state(
+    graph_staté = build_master_graph_state(
         character,
         scene,
         recent_messages,

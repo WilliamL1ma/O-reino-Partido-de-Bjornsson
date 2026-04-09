@@ -15,6 +15,7 @@ def create_app(
     auth_blueprint,
     player_blueprint,
     game_blueprint,
+    translate_class_name,
 ) -> Flask:
     app = Flask(
         import_name,
@@ -33,6 +34,7 @@ def create_app(
         return {
             "current_user": session.get("username"),
             "has_character": session.get("has_character", False),
+            "translate_class_name": translate_class_name,
         }
 
     app.register_blueprint(auth_blueprint)

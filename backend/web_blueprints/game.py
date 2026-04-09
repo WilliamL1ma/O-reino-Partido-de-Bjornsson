@@ -92,7 +92,7 @@ def create_game_blueprint(
             return redirect(url_for("player_routes.character_create"))
 
         reset_campaign_state()(character.id)
-        flash("A campanha foi reiniciada. Sua ficha foi mantida e a jornada comecou do zero.", "success")
+        flash("A campanha foi reiniciada. Sua ficha foi mantida e a jornada começou do zero.", "success")
         return redirect(url_for("game_routes.game_play"))
 
     return blueprint

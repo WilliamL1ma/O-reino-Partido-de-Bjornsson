@@ -59,7 +59,7 @@ def groq_is_configured() -> bool:
 def require_groq_settings() -> GroqSettings:
     settings = load_groq_settings()
     if not settings.api_key:
-        raise LLMGatewayError("GROQ_API_KEY nao configurada.")
+        raise LLMGatewayError("GROQ_API_KEY não configurada.")
     return settings
 
 
@@ -105,7 +105,7 @@ def format_groq_error(error: Exception) -> LLMGatewayError:
         status_code = getattr(detail, "status_code", "desconhecido")
         body = getattr(detail, "text", "") or ""
         body_text = body[:240] if body else error_text[:240]
-        if str(status_code) == "429" or "rate limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
+        if str(status_code) == "429" or "raté limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
             retry_after = _extract_retry_delay_seconds(error_text) or _extract_retry_delay_seconds(body_text)
             message = "Limite de uso da Groq atingido no momento. Tente novamente em alguns instantes."
             if retry_after is not None:
@@ -114,7 +114,7 @@ def format_groq_error(error: Exception) -> LLMGatewayError:
             return LLMRateLimitError(message)
         return LLMGatewayError(f"Groq retornou erro HTTP {status_code}: {body_text}") 
 
-    if "rate limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
+    if "raté limit" in error_text.lower() or "rate_limit_exceeded" in error_text.lower():
         retry_after = _extract_retry_delay_seconds(error_text)
         message = "Limite de uso da Groq atingido no momento. Tente novamente em alguns instantes."
         if retry_after is not None:

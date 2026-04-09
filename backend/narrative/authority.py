@@ -354,7 +354,7 @@ def build_narrative_authority(
 
 
 def build_scene_fallback_actions(scene_key: str, authority: dict, context_hint: dict | None = None) -> list[str]:
-    current_target = authority.get("current_target") or "a ameaca diante de voce"
+    current_target = authority.get("current_target") or "a ameaça diante de você"
     mode = authority.get("interaction_mode")
 
     if context_hint and context_hint.get("kind") == "post_encounter":
@@ -364,7 +364,7 @@ def build_scene_fallback_actions(scene_key: str, authority: dict, context_hint: 
         return [
             f"Revistar com calma o corpo de {current_target}",
             "Observar os arredores antes de sair do local",
-            "Procurar rastros ou sinais de outra ameaca por perto",
+            "Procurar rastros ou sinais de outra ameaça por perto",
             "Recolher o que for util e seguir com cautela",
             "Parar por um instante para recuperar o folego",
         ]
@@ -375,22 +375,22 @@ def build_scene_fallback_actions(scene_key: str, authority: dict, context_hint: 
             "Ajustar sua posicao antes de se expor demais",
             "Ler o terreno e os sinais ao redor do confronto",
             "Decidir entre pressionar, defender ou recuar",
-            "Observar se existe outra ameaca surgindo na cena",
+            "Observar se existe outra ameaça surgindo na cena",
         ]
 
     if mode == "dialogue":
         return [
-            "Responder com calma e manter o mesmo tom da interacao",
-            "Fazer uma pergunta curta para esclarecer a situacao",
+            "Responder com calma e manter o mesmo tom da interação",
+            "Fazer uma pergunta curta para esclarecer a situação",
             "Observar linguagem corporal, distancia e risco imediato",
             "Buscar uma forma segura de continuar a conversa",
-            "Decidir se vale manter o contato ou encerrar a aproximacao",
+            "Decidir se vale manter o contato ou encerrar a aproximação",
         ]
 
     if mode == "puzzle":
         return [
             "Examinar os simbolos e os detalhes mais incomuns",
-            "Relacionar a cena atual com pistas ja vistas antes",
+            "Relacionar a cena atual com pistas já vistas antes",
             "Testar uma hipotese sem forcar a resolucao",
             "Observar o ambiente por mecanismos, espelhos ou marcas",
             "Recuar um passo e reorganizar o raciocinio antes de agir",
@@ -398,7 +398,7 @@ def build_scene_fallback_actions(scene_key: str, authority: dict, context_hint: 
 
     defaults = {
         "chapter_entry": [
-            "Ir ate a taverna mais proxima",
+            "Ir até a taverna mais próxima",
             "Observar a praca e o movimento das ruas",
             "Falar com um guarda sobre a cidade",
             "Caminhar pelas vielas e ouvir rumores",
@@ -414,7 +414,7 @@ def build_scene_fallback_actions(scene_key: str, authority: dict, context_hint: 
         scene_key,
         [
             "Observar melhor o ambiente",
-            "Falar com a pessoa mais proxima",
+            "Falar com a pessoa mais próxima",
             "Investigar sinais, rastros ou marcas",
             "Avancar com cautela",
             "Parar um instante para reavaliar o caminho",

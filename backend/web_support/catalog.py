@@ -134,16 +134,31 @@ CLASSES = [
     {"slug": "sem-classe", "name": "Sem Classe", "summary": "Um iniciado comum, ainda sem trilha definitiva.", "requirements": {}},
 ]
 
+CLASS_NAME_TRANSLATIONS = {
+    "Wizard": "Mago",
+    "Barbarian": "Barbaro",
+    "Bard": "Bardo",
+    "Cleric": "Clerigo",
+    "Druid": "Druida",
+    "Fighter": "Guerreiro",
+    "Rogue": "Ladino",
+    "Necromancer": "Necromante",
+    "Summoner": "Invocador",
+    "Monk": "Monge",
+    "Demon Hunter": "Cacador de Demonios",
+    "Sem Classe": "Sem Classe",
+}
+
 CLASS_LEVELS = {
     "wizard": [
         {"title": "Aprendiz Arcano", "requirement": "5 batalhas ou missoes bem-sucedidas", "reward": "+2 INT, +1 SAB"},
-        {"title": "Conjurador", "requirement": "10 batalhas ou 1 missao importante", "reward": "+2 INT, +2 SAB"},
+        {"title": "Conjurador", "requirement": "10 batalhas ou 1 missoo importante", "reward": "+2 INT, +2 SAB"},
         {"title": "Magus", "requirement": "20 batalhas ou 3 missoes significativas", "reward": "+3 INT, +1 SAB"},
         {"title": "Erudito Arcano", "requirement": "30 batalhas ou 5 missoes de alto risco", "reward": "+3 INT, +2 SAB"},
         {"title": "Arquimago da Sabedoria", "requirement": "50 batalhas ou 10 missoes-chave", "reward": "+4 INT, +3 SAB"},
     ],
     "barbarian": [
-        {"title": "Iniciado Selvagem", "requirement": "5 batalhas ou missoes com combate intenso", "reward": "+2 FOR, +1 CON"},
+        {"title": "Iniciado Selvagem", "requirement": "5 batalhas ou missões com combate intenso", "reward": "+2 FOR, +1 CON"},
         {"title": "Berserker", "requirement": "10 batalhas ou 2 missoes de grande perigo", "reward": "+2 FOR, +2 CON"},
         {"title": "Mestre do Grito de Guerra", "requirement": "20 batalhas ou 3 missoes epicas", "reward": "+3 FOR, +1 CON"},
         {"title": "Espirito Primordial", "requirement": "30 batalhas ou 5 vitorias contra grandes inimigos", "reward": "+3 FOR, +2 CON"},
@@ -207,13 +222,13 @@ CLASS_LEVELS = {
     ],
     "demon-hunter": [
         {"title": "Rastreador", "requirement": "5 missoes de caca a demonios", "reward": "+2 FOR, +1 DEX"},
-        {"title": "Cacador Implacavel", "requirement": "10 missoes de combate ou armadilhas", "reward": "+2 FOR, +2 DEX"},
+        {"title": "Caçador Implacável", "requirement": "10 missões de combate ou armadilhas", "reward": "+2 FOR, +2 DEX"},
         {"title": "Exterminador", "requirement": "20 demonios derrotados ou missoes de alto risco", "reward": "+3 FOR, +1 DEX"},
         {"title": "Justiceiro", "requirement": "30 missoes de eliminacao de grandes demonios", "reward": "+3 FOR, +2 DEX"},
         {"title": "Ascendente", "requirement": "50 grandes cacadas ou derrotas poderosas", "reward": "+4 FOR, +3 DEX"},
     ],
     "sem-classe": [
-        {"title": "Iniciado Comum", "requirement": "Sem requisitos especiais", "reward": "Evolucao livre ate encontrar uma trilha"},
+        {"title": "Iniciado Comum", "requirement": "Sem requisitos especiais", "reward": "Evolucao livre até encontrar uma trilha"},
     ],
 }
 

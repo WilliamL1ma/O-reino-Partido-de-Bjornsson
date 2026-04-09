@@ -311,14 +311,14 @@ def _build_stakes(action_kind: str, monster_name: str | None) -> str:
     if action_kind == "investigate":
         return "A analise do personagem vai decidir se pistas relevantes aparecem agora."
     if action_kind == "defend":
-        return "A reacao defensiva precisa ser resolvida no dado antes de definir o custo da pressao."
+        return "A reacao defensiva precisa ser resolvida no dado antes de definir o custo da pressão."
     if action_kind == "escape":
-        return "A fuga precisa ser resolvida no dado antes de definir se voce abre distancia."
+        return "A fuga precisa ser resolvida no dado antes de definir se você abre distância."
     if action_kind == "recover":
-        return "A tentativa de se recompor depende do controle do corpo sob pressao."
+        return "A tentativa de se recompor depende do controle do corpo sob pressão."
     if action_kind == "ritual":
         return "A canalizacao do poder precisa ser resolvida no dado antes de definir o efeito do ritual."
-    return "A situacao exige uma rolagem antes que a cena possa ser resolvida."
+    return "A situação exige uma rolagem antes que a cena possa ser resolvida."
 
 
 def normalize_pending_event(

@@ -100,7 +100,7 @@ def summarize_memory_if_needed(
         {
             "role": "system",
             "content": (
-                "Resuma a memoria de um jogador de RPG em portugues. "
+                "Resuma a memória de um jogador de RPG em português. "
                 "Guarde apenas fatos duradouros: estilo do jogador, decisoes, interesses, "
                 "aliancas, desconfiancas, itens narrativos, pistas e tom emocional. "
                 "Seja conciso, 6 a 10 linhas."

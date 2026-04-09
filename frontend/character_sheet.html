@@ -31,7 +31,7 @@
           </div>
         </a>
         <form action="/logout" method="post">
-          <button class="topbar__cta" type="submit">Sair da sessao</button>
+          <button class="topbar__cta" type="submit">Sair da sessão</button>
         </form>
       </header>
 
@@ -40,7 +40,7 @@
           <p class="eyebrow">Ficha impressa</p>
           <h2>{{ character.name }}</h2>
           <p class="player-panel__lead">
-            O personagem esta pronto com raca, classe e status finais definidos.
+            O personagem está pronto com raça, classe e status finais definidos.
           </p>
 
           <div class="player-grid player-grid--four">
@@ -50,7 +50,7 @@
                 <li><strong>Nome:</strong> {{ character.name }}</li>
                 <li><strong>Idade:</strong> {{ character.age }}</li>
                 <li><strong>Raca:</strong> {{ character.race_name }}</li>
-                <li><strong>Classe:</strong> {{ character.class_name }}</li>
+                <li><strong>Classe:</strong> {{ translate_class_name(character.class_name) }}</li>
               </ul>
             </article>
 
@@ -87,7 +87,7 @@
             </article>
 
             <article class="player-card">
-              <p class="player-card__label">Inventario do capitulo</p>
+              <p class="player-card__label">Inventário do capítulo</p>
               <ul class="player-card__list">
                 {% if inventory %}
                   {% for item in inventory[-8:] %}
@@ -104,7 +104,7 @@
           </div>
 
           <div class="hero__actions">
-            <a class="button button--primary" href="/jogo">Continuar capitulo</a>
+            <a class="button button--primary" href="/jogo">Continuar capítulo</a>
             <a class="button button--ghost" href="/jogador">Voltar para a area do jogador</a>
             <a class="button button--ghost" href="/">Voltar para a home</a>
           </div>

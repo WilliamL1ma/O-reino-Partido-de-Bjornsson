@@ -38,7 +38,7 @@ SCENE_ACTION_TRANSITIONS = {
 FIRST_CHAPTER_ACHIEVEMENT = {
     "slug": "primeiro-capitulo-concluido",
     "name": "Primeiro Capitulo Concluido",
-    "description": "Recebeu um legado do capitulo inicial e assumiu o misterio principal de Elandoria.",
+    "description": "Recebeu um legado do capítulo inicial e assumiu o mistério principal de Elandoria.",
 }
 
 
@@ -96,7 +96,7 @@ def _ensure_first_chapter_achievement(
         store_gm_message(
             character.id,
             "chapter_complete",
-            "O mestre inclina a cabeca em reverencia. Obrigado por jogar o primeiro capitulo.",
+            "O mestre inclina a cabeça em reverência. Obrigado por jogar o primeiro capítulo.",
         )
     elif updated_flags != flags:
         persist_state(character.id, flags=updated_flags)
@@ -110,7 +110,7 @@ def summarize_memory_if_needed(character: Character, *, summarize_memory: Callab
                 call_llm=lambda messages: call_groq_messages(messages, temperature=0.3),
             )
         except Exception:
-            LOGGER.exception("Falha ao resumir memoria narrativa em background.")
+            LOGGER.exception("Falha ao resumir memória narrativa em background.")
 
     threading.Thread(
         target=_run_summary,
@@ -210,7 +210,7 @@ def build_story_rewards(character: Character) -> list[dict]:
             0,
             {
                 "name": "Espada de Vinganca de Rowan",
-                "tag": "Legado de justica",
+                "tag": "Legado de justiça",
                 "description": "Arma a dor transformada em coragem, moral de grupo e dano aumentado.",
             },
         )
@@ -249,13 +249,13 @@ def finalize_chapter_rewards(
     reward_names = {reward["name"] for reward in chapter_rewards}
     if "Espada de Vinganca de Rowan" in reward_names and "Cristal Incompreendido" in reward_names:
         closing_message = (
-            "O legado de justica repousa agora em suas maos, e o misterio principal de Elandoria segue vivo diante de voce. "
-            "O mestre inclina a cabeca em respeito. Obrigado por jogar o primeiro capitulo."
+            "O legado de justiça repousa agora em suas mãos, e o mistério principal de Elandoria segue vivo diante de você. "
+            "O mestre inclina a cabeça em respeito. Obrigado por jogar o primeiro capítulo."
         )
     else:
         closing_message = (
-            "Os dons conquistados neste capitulo agora seguem com voce para o que vem depois. "
-            "O mestre inclina a cabeca em respeito. Obrigado por jogar o primeiro capitulo."
+            "Os dons conquistados neste capítulo agora seguem com você para o que vem depois. "
+            "O mestre inclina a cabeça em respeito. Obrigado por jogar o primeiro capítulo."
         )
 
     store_gm_message(character.id, "chapter_complete", closing_message)
@@ -293,7 +293,7 @@ def _handle_legacy_puzzle_action(
     altar_flower = request.form.get("altar_flower", "").strip().lower()
 
     if mirrors != ["amor", "luto", "vinganca"]:
-        flash("Os espelhos ainda nao foram compreendidos na ordem correta.", "error")
+        flash("Os espelhos ainda não foram compreendidos na ordem correta.", "error")
         return True
     if legacy_word != "paz":
         flash("O guardiao ainda aguarda a palavra que define o futuro de Elandoria.", "error")
@@ -426,7 +426,7 @@ def handle_game_master_chat(
     if character is None:
         return jsonify({"ok": False, "message": "Crie sua ficha antes de falar com o mestre."}), 400
     if not character.class_name:
-        return jsonify({"ok": False, "message": "Finalize a criacao do personagem antes de usar o mestre."}), 400
+        return jsonify({"ok": False, "message": "Finalize a criação do personagem antes de usar o mestre."}), 400
 
     if groq_enabled is None:
         groq_enabled = groq_is_configured()
@@ -437,7 +437,7 @@ def handle_game_master_chat(
 
     player_message = request.form.get("message", "").strip()
     if not player_message:
-        return jsonify({"ok": False, "message": "Escreva sua acao ou pergunta antes de enviar."}), 400
+        return jsonify({"ok": False, "message": "Escreva sua ação ou pergunta antes de enviar."}), 400
 
     try:
         response_payload = conversation_runner(
@@ -462,7 +462,7 @@ def handle_game_roll(
     get_pending_event_for_character: Callable[[Character], dict | None] = get_pending_event,
 ) -> tuple[object, int] | object:
     if character is None:
-        return jsonify({"ok": False, "message": "Personagem nao encontrado."}), 400
+        return jsonify({"ok": False, "message": "Personagem não encontrado."}), 400
 
     pending_event = get_pending_event_for_character(character)
     if not pending_event:
@@ -484,7 +484,7 @@ def handle_game_roll_resolution(
     get_pending_event_for_character: Callable[[Character], dict | None] = get_pending_event,
 ) -> tuple[object, int] | object:
     if character is None:
-        return jsonify({"ok": False, "message": "Personagem nao encontrado."}), 400
+        return jsonify({"ok": False, "message": "Personagem não encontrado."}), 400
 
     pending_event = get_pending_event_for_character(character)
     if not pending_event:

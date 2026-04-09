@@ -31,7 +31,7 @@
           </div>
         </a>
         <form action="/logout" method="post">
-          <button class="topbar__cta" type="submit">Sair da sessao</button>
+          <button class="topbar__cta" type="submit">Sair da sessão</button>
         </form>
       </header>
 
@@ -50,13 +50,13 @@
           <p class="eyebrow">{{ scene.eyebrow }}</p>
           <h2>Mestre de Elandoria</h2>
           <p class="player-panel__lead">
-            O mestre conduz a jornada no presente de Elandoria. Ele descreve a situacao, oferece caminhos possiveis e aciona rolagens quando a cena exigir.
+            O mestre conduz a jornada no presente de Elandoria. Ele descreve a situação, oferece caminhos possíveis e aciona rolagens quando a cena exigir.
           </p>
 
           {% if scene.type == "complete" %}
           <div class="game-scene-context">
-            <p>O primeiro capitulo foi concluido, e eu me reverencio diante de voce com gratidao sincera.</p>
-            <p>Obrigado por dedicar seu tempo ao meu jogo. Espero que a jornada por Elandoria tenha tocado sua memoria, sua curiosidade e seu coracao.</p>
+            <p>O primeiro capítulo foi concluído, e eu me reverencio diante de você com gratidão sincera.</p>
+            <p>Obrigado por dedicar seu tempo ao meu jogo. Espero que a jornada por Elandoria tenha tocado sua memória, sua curiosidade e seu coração.</p>
           </div>
           {% endif %}
 
@@ -112,7 +112,7 @@
               </article>
               <article class="game-chat__message game-chat__message--gm">
                 <strong>Mestre</strong>
-                <p>Fale comigo sobre o que voce quer fazer.</p>
+                <p>Fale comigo sobre o que você quer fazer.</p>
               </article>
               {% endif %}
             </div>
@@ -134,13 +134,13 @@
             <p><strong>Sugestoes do mestre</strong></p>
             <ol id="game-suggestions-list">
               {% if pending_event %}
-              <li>As sugestoes ficam disponiveis novamente depois que a rolagem pendente for resolvida.</li>
+              <li>As sugestões ficam disponíveis novamente depois que a rolagem pendente for resolvida.</li>
               {% elif suggested_actions %}
                 {% for action in suggested_actions[:5] %}
                 <li>{{ action }}</li>
                 {% endfor %}
               {% else %}
-              <li>As proximas opcoes aparecerao aqui quando o mestre sugerir caminhos.</li>
+              <li>As próximas opções aparecerão aqui quando o mestre sugerir caminhos.</li>
               {% endif %}
             </ol>
           </article>
@@ -168,7 +168,7 @@
             <ul class="player-card__list">
               <li><strong>Nome:</strong> {{ character.name }}</li>
               <li><strong>Raca:</strong> {{ character.race_name }}</li>
-              <li><strong>Classe:</strong> {{ character.class_name }}</li>
+              <li><strong>Classe:</strong> {{ translate_class_name(character.class_name) }}</li>
               <li><strong>Ato atual:</strong> {{ character.story_act }}</li>
             </ul>
           </article>
@@ -178,7 +178,7 @@
             <ul class="player-card__list">
               <li><strong>XP:</strong> {{ character.experience }}</li>
               <li><strong>Ouro:</strong> {{ character.gold }}</li>
-              <li><strong>Marco do capitulo:</strong> {{ scene.title }}</li>
+              <li><strong>Marco do capítulo:</strong> {{ scene.title }}</li>
             </ul>
             <div class="hero__actions">
               <form action="/jogo/resetar-campanha" method="post">
@@ -200,7 +200,7 @@
           </article>
 
           <article class="player-card">
-            <p class="player-card__label">Inventario do capitulo</p>
+            <p class="player-card__label">Inventário do capítulo</p>
             <ul class="player-card__list">
               {% if inventory %}
                 {% for item in inventory[-8:] %}
@@ -242,7 +242,7 @@
       <div class="race-modal__backdrop"></div>
       <div class="race-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="game-roll-title">
         <p class="eyebrow">Rolagem do mestre</p>
-        <h2 id="game-roll-title" class="race-modal__title">A situacao exige um d20.</h2>
+        <h2 id="game-roll-title" class="race-modal__title">A situação exige um d20.</h2>
         <p class="race-modal__text" id="game-roll-stakes">Resolva o evento pendente para a aventura continuar.</p>
         <div class="race-modal__meta">
           <span class="race-modal__threshold" id="game-roll-attribute">ATRIBUTO</span>

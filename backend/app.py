@@ -42,7 +42,7 @@ from web_support.auth_helpers import (
     validate_birth_date,
     verify_password,
 )
-from web_support.catalog import ATTRIBUTE_FIELDS, CLASSES, RACES
+from web_support.catalog import ATTRIBUTE_FIELDS, CLASS_NAME_TRANSLATIONS, CLASSES, RACES
 from web_support.narrative_helpers import (
     get_pending_event,
     get_story_flags,
@@ -148,6 +148,12 @@ def _character_meets_class_requirements(character: Character, class_definition: 
 
 def _get_class_by_slug(slug: str) -> dict | None:
     return get_class_by_slug(slug, classes=CLASSES)
+
+
+def _translate_class_name(name: str | None) -> str:
+    if not name:
+        return ""
+    return CLASS_NAME_TRANSLATIONS.get(name, name)
 
 
 def _get_story_flags(character: Character) -> dict:
@@ -327,6 +333,7 @@ def create_app():
         auth_blueprint=auth_blueprint,
         player_blueprint=player_blueprint,
         game_blueprint=game_blueprint,
+        translate_class_name=_translate_class_name,
     )
 
 

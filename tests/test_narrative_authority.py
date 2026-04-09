@@ -68,7 +68,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
 
         actions = sanitize_suggested_actions(
             [
-                "Atacar o goblin de novo para garantir a vitoria",
+                "Atacar o goblin de novo para garantir a vitória",
                 "Revistar o corpo do goblin com cuidado",
                 "Observar os arredores antes de sair do local",
             ],
@@ -76,7 +76,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
             fallback_actions,
         )
 
-        self.assertNotIn("Atacar o goblin de novo para garantir a vitoria", actions)
+        self.assertNotIn("Atacar o goblin de novo para garantir a vitória", actions)
         self.assertEqual(
             actions,
             [
@@ -95,7 +95,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
 
         payload = finalize_master_output(
             {
-                "result_narration": "O goblin cai sem voltar a ameacar voce.",
+                "result_narration": "O goblin cai sem voltar a ameaçar você.",
                 "result_event": None,
                 "result_next_scene": None,
                 "result_suggested_actions": [
@@ -199,7 +199,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
     def test_build_narrative_authority_uses_context_hint_as_post_combat_truth_without_text(self) -> None:
         authority = build_narrative_authority(
             scene_key="encounter_goblin",
-            scene={"type": "encounter", "title": "Emboscada", "lead": "O silencio volta para a trilha."},
+            scene={"type": "encounter", "title": "Emboscada", "lead": "O silêncio volta para a trilha."},
             allowed_next_scenes=["act_two_crossroads"],
             recent_messages=[],
             pending_event=None,
@@ -264,7 +264,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
         self.assertEqual(payload["authoritative_state"]["current_scene_state"]["scene_key"], "encounter_goblin")
 
     def test_invoke_and_finalize_master_graph_returns_clean_payload(self) -> None:
-        graph_state = {
+        graph_staté = {
             "authoritative_state": {
                 "interaction_mode": "post_combat",
                 "allowed_action_kinds": ["loot", "observe", "investigate", "move", "recover"],
@@ -279,7 +279,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
 
         def _graph_runner(_state: dict) -> dict:
             return {
-                "result_narration": "O goblin cai sem voltar a ameacar voce.",
+                "result_narration": "O goblin cai sem voltar a ameaçar você.",
                 "result_event": None,
                 "result_next_scene": None,
                 "result_suggested_actions": [
@@ -290,7 +290,7 @@ class NarrativeAuthorityTests(unittest.TestCase):
 
         result = invoke_and_finalize_master_graph(graph_state, _graph_runner)
 
-        self.assertEqual(result.payload["narration"], "O goblin cai sem voltar a ameacar voce.")
+        self.assertEqual(result.payload["narration"], "O goblin cai sem voltar a ameaçar você.")
         self.assertEqual(result.payload["suggested_actions"], ["Revistar com calma o corpo de Goblin Cacador"])
 
 

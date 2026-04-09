@@ -31,7 +31,7 @@
           </div>
         </a>
         <form action="/logout" method="post">
-          <button class="topbar__cta" type="submit">Sair da sessao</button>
+          <button class="topbar__cta" type="submit">Sair da sessão</button>
         </form>
       </header>
 
@@ -50,7 +50,7 @@
           <p class="eyebrow">Etapa 4</p>
           <h2>{{ character.name }}</h2>
           <p class="player-panel__lead">
-            Os status ja foram definidos. Escolha a classe final do personagem.
+            Os status já foram definidos. Escolha a classe final do personagem.
           </p>
 
           <div class="race-grid">
@@ -59,7 +59,7 @@
               <div class="race-card__inner">
                 <div class="race-card__face race-card__face--front">
                   <div class="race-card__head">
-                    <p class="race-card__title">{{ class_item.name }}</p>
+                    <p class="race-card__title">{{ class_item.display_name or translate_class_name(class_item.name) }}</p>
                     {% if class_item.levels %}
                     <button
                       class="race-card__info js-class-info"
@@ -83,14 +83,14 @@
                   <form action="/jogador/classe" method="post">
                     <input type="hidden" name="class" value="{{ class_item.slug }}" />
                     <button class="button {% if class_item.allowed %}button--primary{% else %}button--ghost button--disabled{% endif %} race-card__button" type="submit" {% if not class_item.allowed %}disabled{% endif %}>
-                      {% if class_item.allowed %}Escolher {{ class_item.name }}{% else %}Bloqueada{% endif %}
+                      {% if class_item.allowed %}Escolher {{ class_item.display_name or translate_class_name(class_item.name) }}{% else %}Bloqueada{% endif %}
                     </button>
                   </form>
                 </div>
 
                 <div class="race-card__face race-card__face--back">
                   <div class="race-card__head">
-                    <p class="race-card__title">{{ class_item.name }}</p>
+                    <p class="race-card__title">{{ class_item.display_name or translate_class_name(class_item.name) }}</p>
                     <button class="race-card__info js-class-info" type="button" aria-expanded="true">
                       x
                     </button>

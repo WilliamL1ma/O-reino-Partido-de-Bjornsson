@@ -109,13 +109,20 @@ def create_player_blueprint(
                 if db_character.story_inventory is None:
                     db_character.story_inventory = json.dumps([], ensure_ascii=True)
 
-            flash(f"Classe {class_definition['name']} escolhida com sucesso.", "success")
-            return redirect(url_for("game_routes.game_play"))
+                flash(f"Classe {class_definition.get('display_name', class_definition['name'])} escolhida com sucesso.", "success")
+                return redirect(url_for("game_routes.game_play"))
 
         class_cards = []
         for class_definition in classes:
             allowed, missing = character_meets_class_requirements(character, class_definition)
-            class_cards.append({**class_definition, "allowed": allowed, "missing": missing})
+            class_cards.append(
+                {
+                    **class_definition,
+                    "display_name": class_definition.get("display_name", class_definition["name"]),
+                    "allowed": allowed,
+                    "missing": missing,
+                }
+            )
 
         return render_template("class_select.html", character=character, classes=class_cards)
 
@@ -219,11 +226,11 @@ def create_player_blueprint(
         if character is None:
             return jsonify({"ok": False, "message": "Crie a ficha antes de rolar os status."}), 400
         if not character.race_slug:
-            return jsonify({"ok": False, "message": "Escolha a raca antes de rolar os status."}), 400
+            return jsonify({"ok": False, "message": "Escolha a raça antes de rolar os status."}), 400
         if character.class_name:
-            return jsonify({"ok": False, "message": "A classe ja foi definida para este personagem."}), 400
+            return jsonify({"ok": False, "message": "A classe já foi definida para este personagem."}), 400
         if character.onboarding_step == "class":
-            return jsonify({"ok": False, "message": "Os status ja foram rolados para este personagem."}), 400
+            return jsonify({"ok": False, "message": "Os status já foram rolados para este personagem."}), 400
 
         current_rolls = get_attribute_rolls()
         next_field = None
@@ -242,7 +249,7 @@ def create_player_blueprint(
                     "ok": True,
                     "completed": True,
                     "next_url": url_for(".class_select"),
-                    "message": "Todos os status ja foram definidos.",
+                    "message": "Todos os status já foram definidos.",
                 }
             )
 
@@ -274,7 +281,7 @@ def create_player_blueprint(
         existing_character = get_character_by_user_id(session["user_id"])
 
         if existing_character is not None and existing_character.class_name:
-            flash("A criacao nao pode mais ser resetada depois que a classe foi definida.", "error")
+            flash("A criação não pode mais ser resetada depois que a classe foi definida.", "error")
             return redirect(url_for("game_routes.game_play"))
 
         if existing_character is not None:
@@ -285,7 +292,7 @@ def create_player_blueprint(
             session["has_character"] = False
 
         clear_attribute_rolls()
-        flash("A criacao do personagem foi resetada. Voce pode comecar tudo do zero.", "success")
+        flash("A criação do personagem foi resetada. Você pode começar tudo do zero.", "success")
         return redirect(url_for(".character_create"))
 
     @blueprint.route("/jogador/raca", methods=["GET", "POST"], endpoint="race_select")
@@ -298,7 +305,7 @@ def create_player_blueprint(
             flash("A raça foi bloqueada porque a classe já foi definida.", "error")
             return redirect(url_for(".player_home"))
         if special_race_is_locked(character):
-            flash("Depois de arriscar a sorte com Anjo ou Demonio, a raca fica bloqueada mesmo antes da classe.", "error")
+            flash("Depois de arriscar a sorte com Anjo ou Demonio, a raça fica bloqueada mesmo antes da classe.", "error")
             return redirect(url_for(".player_home"))
 
         if request.method == "POST":

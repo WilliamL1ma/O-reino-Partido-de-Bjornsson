@@ -5,11 +5,11 @@ MONSTERS = {
         "xp": 100,
         "hp": 22,
         "armor": 13,
-        "summary": "Predador anfibio que embosca presas em margens escuras e cavernas umidas.",
+        "summary": "Predador anfíbio que embosca presas em margens escuras e cavernas umidas.",
         "abilities": [
             "Mordida: 1d6 + 2 de dano perfurante.",
-            "Fuga Subaquatica: move 15 pes em agua sem provocar reacao.",
-            "Sombra do Pantano: some em sombras e trevas.",
+            "Fuga Subaquática: move 15 pes em agua sem provocar reação.",
+            "Sombra do Pântano: some em sombras e trevas.",
         ],
         "drops": [
             {"name": "Escama do Robalo", "value": 5},
@@ -19,7 +19,7 @@ MONSTERS = {
         "favored_tactics": {"precision", "instinct"},
     },
     "goblin-cacador": {
-        "name": "Goblin Cacador",
+        "name": "Goblin Caçador",
         "challenge": "1/4",
         "xp": 50,
         "hp": 7,
@@ -27,8 +27,8 @@ MONSTERS = {
         "summary": "Emboscador de trilhas estreitas, usa cobertura e ataca primeiro.",
         "abilities": [
             "Arco Curto: 1d6 + 2 de dano perfurante.",
-            "Furtividade: se esconde em rochas e arvores.",
-            "Estrategia de Emboscada: vantagem no primeiro ataque.",
+            "Furtividade: se esconde em rochas e árvores.",
+            "Estratégia de Emboscada: vantagem no primeiro ataque.",
         ],
         "drops": [
             {"name": "Arco de Curto Alcance", "value": 10},
@@ -47,8 +47,8 @@ MONSTERS = {
         "summary": "Predadora ardente que ocupa tetos e corredores estreitos com teias em chamas.",
         "abilities": [
             "Mordida Ardente: 1d6 + 2 perfurante e 2d6 fogo.",
-            "Teia Flamejante: prende alvos e incendeia a area.",
-            "Escalada Agil: percorre paredes e tetos.",
+            "Teia Flamejante: prende alvos e incendeia a área.",
+            "Escalada ágil: percorre paredes e tetos.",
         ],
         "drops": [
             {"name": "Seda Flamejante", "value": 12},
@@ -65,14 +65,14 @@ MONSTERS = {
         "armor": 15,
         "summary": "Caçador ancestral de matas fechadas, marca a presa e persegue sem hesitar.",
         "abilities": [
-            "Mordida de Cacador: 1d6 + 2 perfurante.",
-            "Sentidos Agucados: rastreia por som e cheiro.",
-            "Mestre da Cacada: ganha vantagem contra o alvo marcado.",
+            "Mordida de Caçador: 1d6 + 2 perfurante.",
+            "Sentidos Aguçados: rastreia por som e cheiro.",
+            "Mestre da Caçada: ganha vantagem contra o alvo marcado.",
         ],
         "drops": [
             {"name": "Pelagem Densa", "value": 10},
             {"name": "Dente de Lupus", "value": 8},
-            {"name": "Coracao de Lupus", "value": 20},
+            {"name": "Coração de Lupus", "value": 20},
         ],
         "dc": 13,
         "favored_tactics": {"instinct", "power"},
@@ -83,15 +83,15 @@ MONSTERS = {
         "xp": 50,
         "hp": 9,
         "armor": 12,
-        "summary": "Guardiao ferino da mata, ataca de sombras verdes e de galhos densos.",
+        "summary": "Guardião ferino da mata, ataca de sombras verdes e de galhos densos.",
         "abilities": [
-            "Besta de Caca: 1d6 perfurante.",
-            "Furtividade nas Sombras: some em vegetacao sombria.",
-            "Punicao da Natureza: dano extra perto de arvores.",
+            "Besta de Caça: 1d6 perfurante.",
+            "Furtividade nas Sombras: some em vegetação sombria.",
+            "Punição da Natureza: dano extra perto de árvores.",
         ],
         "drops": [
-            {"name": "Folha Enfeiticada", "value": 8},
-            {"name": "Besta de Caca", "value": 15},
+            {"name": "Folha Enfeitiçada", "value": 8},
+            {"name": "Besta de Caça", "value": 15},
         ],
         "dc": 10,
         "favored_tactics": {"mystic", "precision"},
@@ -102,11 +102,11 @@ MONSTERS = {
         "xp": 50,
         "hp": 15,
         "armor": 13,
-        "summary": "Serpente rapida que envenena e recua antes da resposta do alvo.",
+        "summary": "Serpente rápida que envenena e recua antes da resposta do alvo.",
         "abilities": [
             "Mordida Venenosa: 1d4 + 2 perfurante e 1d6 veneno.",
-            "Fuga Rapida: reposiciona-se com velocidade.",
-            "Sentido de Perigo: percebe ameacas a curta distancia.",
+            "Fuga Rápida: reposiciona-se com velocidade.",
+            "Sentido de Perigo: percebe ameaças a curta distancia.",
         ],
         "drops": [
             {"name": "Veneno da Cobra", "value": 5},
@@ -116,20 +116,20 @@ MONSTERS = {
         "favored_tactics": {"precision", "instinct"},
     },
     "bufalo-selvagem": {
-        "name": "Bufalo Selvagem",
+        "name": "Búfalo Selvagem",
         "challenge": "1/2",
         "xp": 100,
         "hp": 30,
         "armor": 15,
-        "summary": "Massa bruta de musculo e couro, capaz de quebrar linhas com uma investida.",
+        "summary": "Massa bruta de músculo e couro, capaz de quebrar linhas com uma investida.",
         "abilities": [
             "Chifre Afiado: 2d6 + 3 contundente.",
-            "Investida: derruba e prensa a vitima.",
-            "Furia Animal: acelera em disparada curta.",
+            "Investida: derruba e prensa a vítima.",
+            "Fúria Animal: acelera em disparada curta.",
         ],
         "drops": [
             {"name": "Chifre Afiado", "value": 10},
-            {"name": "Carne de Bufalo", "value": 8},
+            {"name": "Carne de Búfalo", "value": 8},
             {"name": "Pele Grossa", "value": 12},
         ],
         "dc": 12,
@@ -141,9 +141,9 @@ MONSTERS = {
         "xp": 50,
         "hp": 18,
         "armor": 12,
-        "summary": "Anfibio grotesco que alterna saltos e jatos corrosivos em terreno lodoso.",
+        "summary": "Anfíbio grotesco que alterna saltos e jatos corrosivos em terreno lodoso.",
         "abilities": [
-            "Salto Gigante: atravessa obstaculos e recua.",
+            "Salto Gigante: atravessa obstáculos e recua.",
             "Mordida Viscosa: 1d6 + 1 perfurante.",
             "Veneno Digestivo: cone curto de dano venenoso.",
         ],
@@ -160,11 +160,11 @@ MONSTERS = {
         "xp": 200,
         "hp": 27,
         "armor": 13,
-        "summary": "Guardiao feroz tomado por energia lunar e dor ancestral nos arredores da caverna.",
+        "summary": "Guardião feroz tomado por energia lunar e dor ancestral nos arredores da caverna.",
         "abilities": [
             "Mordida de Lobisomem: 1d6 + 2 perfurante.",
             "Garras Afiadas: 1d4 + 2 cortante.",
-            "Regeneracao Lunar: recupera vida sob o luar.",
+            "Regeneração Lunar: recupera vida sob o luar.",
         ],
         "drops": [
             {"name": "Dente de Lobisomem", "value": 8},
@@ -180,16 +180,16 @@ MONSTERS = {
         "xp": 50,
         "hp": 13,
         "armor": 14,
-        "summary": "Criatura agil e incendiaria, excelente para um confronto rapido de farm.",
+        "summary": "Criatura ágil e incendiária, excelente para um confronto rápido de farm.",
         "abilities": [
             "Mordida Flamejante: 1d6 + 2 perfurante e 1d4 fogo.",
             "Corrida Incendiaria: deixa trilha de chamas.",
-            "Furtividade: desaparece em sombra e vegetacao.",
+            "Furtividade: desaparece em sombra e vegetação.",
         ],
         "drops": [
             {"name": "Pelo Flamejante", "value": 8},
             {"name": "Veneno Flamejante", "value": 12},
-            {"name": "Caroco de Fruta Exotica", "value": 5},
+            {"name": "Caroço de Fruta Exótica", "value": 5},
         ],
         "dc": 10,
         "favored_tactics": {"precision", "mystic"},
@@ -200,11 +200,11 @@ MONSTERS = {
         "xp": 100,
         "hp": 18,
         "armor": 14,
-        "summary": "Ave de mergulho violento que domina clareiras e trilhas aereas.",
+        "summary": "Ave de mergulho violento que domina clareiras e trilhas aáreas.",
         "abilities": [
             "Pico Afiado: 1d6 + 2 perfurante.",
-            "Ataque Aereo: 2d6 perfurante em mergulho.",
-            "Manobra Agil: desvia e sobe novamente.",
+            "Ataque Aéreo: 2d6 perfurante em mergulho.",
+            "Manobra ágil: desvia e sobe novamente.",
         ],
         "drops": [
             {"name": "Penas Afiadas", "value": 5},
@@ -219,19 +219,19 @@ MONSTERS = {
 TACTICS = {
     "power": {
         "name": "Assalto Frontal",
-        "summary": "Usa forca, presenca e resistencia para esmagar o inimigo.",
+        "summary": "Usa força, presenca e resistencia para esmagar o inimigo.",
     },
     "precision": {
-        "name": "Precisao e Movimento",
-        "summary": "Busca o angulo certo, o flanco e a abertura mais curta.",
+        "name": "Precisão e Movimento",
+        "summary": "Busca o ângulo certo, o flanco e a abertura mais curta.",
     },
     "mystic": {
         "name": "Leitura Arcana",
         "summary": "Canaliza magia, astucia ou disciplina espiritual para vencer.",
     },
     "instinct": {
-        "name": "Instinto de Sobrevivencia",
-        "summary": "Luta por percepcao, adaptacao e leitura do terreno.",
+        "name": "Instinto de Sobrevivência",
+        "summary": "Luta por percepção, adaptação e leitura do terreno.",
     },
 }
 
@@ -241,10 +241,10 @@ CHAPTER_SCENES = {
         "act": 1,
         "eyebrow": "Ato 1",
         "title": "Ruas Baixas de Elandoria",
-        "lead": "Voce desperta nas ruas baixas de Elandoria, entre tavernas, guardas cansados e rumores sobre algo inquieto nos arredores do reino.",
+        "lead": "Você desperta nas ruas baixas de Elandoria, entre tavernas, guardas cansados e rumores sobre algo inquieto nos arredores do reino.",
         "body": [
-            "A cidade vive no presente, mas nunca escapou totalmente da memoria de sua fundacao. Em tavernas e esquinas, nomes antigos ainda voltam em voz baixa.",
-            "Alguns falam de trilhas fechadas, de um memorial antigo e de gente que saiu para investigar e nao voltou. Nada e claro ainda, e voce precisa encontrar seu primeiro rumo.",
+            "A cidade vive no presente, mas nunca escapou totalmente da memória de sua fundação. Em tavernas e esquinas, nomes antigos ainda voltam em voz baixa.",
+            "Alguns falam de trilhas fechadas, de um memorial antigo e de gente que saiu para investigar e não voltou. Nada é claro ainda, e você precisa encontrar seu primeiro rumo.",
         ],
         "options": [
             {"action": "go_goblin", "label": "Seguir pela Trilha do Memorial", "summary": "Voce deixa a cidade e segue o rumor mais perigoso."},
@@ -265,8 +265,8 @@ CHAPTER_SCENES = {
         "type": "encounter",
         "act": 1,
         "eyebrow": "Ato 1",
-        "title": "Aguas da Riva Sombria",
-        "lead": "Nas margens encharcadas, algo pesado rompe a agua negra e mira sua perna.",
+        "title": "Águas da Riva Sombria",
+        "lead": "Nas margens encharcadas, algo pesado rompe a água negra e mira sua perna.",
         "body": [
             "O terreno trai cada passo. O primeiro erro vira alimento para um predador de riva.",
         ],
@@ -278,12 +278,12 @@ CHAPTER_SCENES = {
         "title": "Pistas na borda da mata",
         "lead": "Os primeiros sinais confirmam que algo protege o caminho para a caverna de Freya.",
         "body": [
-            "Marcas antigas, galhos partidos e trilhas recentes sugerem que a area virou um corredor de criaturas agressivas e pequenos predadores oportunistas.",
-            "Voce encontra tambem um simbolo antigo de Elandoria gravado em pedra, quase tomado por musgo. A caverna sagrada parece mais proxima.",
+            "Marcas antigas, galhos partidos e trilhas recentes sugerem que a área virou um corredor de criaturas agressivas e pequenos predadores oportunistas.",
+            "Você encontra também um símbolo antigo de Elandoria gravado em pedra, quase tomado por musgo. A caverna sagrada parece mais próxima.",
         ],
         "options": [
-            {"action": "go_duende", "label": "Entrar na clareira do bosque", "summary": "Area viva, silenciosa e protegida por olhos ocultos."},
-            {"action": "go_cobra", "label": "Seguir pela trilha baixa", "summary": "Terreno rapido, seco e repleto de risco venenoso."},
+            {"action": "go_duende", "label": "Entrar na clareira do bosque", "summary": "Área viva, silenciosa e protegida por olhos ocultos."},
+            {"action": "go_cobra", "label": "Seguir pela trilha baixa", "summary": "Terreno rápido, seco e repleto de risco venenoso."},
             {"action": "go_raposa", "label": "Farmar nas redondezas", "summary": "Uma caçada curta antes de avancar."},
         ],
     },
@@ -291,7 +291,7 @@ CHAPTER_SCENES = {
         "type": "encounter",
         "act": 2,
         "eyebrow": "Ato 2",
-        "title": "Guardiao do Bosque",
+        "title": "Guardião do Bosque",
         "lead": "Um duende do bosque toma sua presenca como invasao e usa a propria mata como arma.",
         "body": [
             "As folhas parecem cochichar antes do disparo. O inimigo nunca fica onde seus olhos esperam.",
@@ -302,9 +302,9 @@ CHAPTER_SCENES = {
         "act": 2,
         "eyebrow": "Ato 2",
         "title": "Silvo na Trilha Baixa",
-        "lead": "A cobra surge baixa, rapida e venenosa, ja pronta para o bote e a retirada.",
+        "lead": "A cobra surge baixa, rápida e venenosa, já pronta para o bote e a retirada.",
         "body": [
-            "A trilha seca e estreita parece segura demais. Quando o solo vibra, o veneno ja esta em movimento.",
+            "A trilha seca e estreita parece segura demais. Quando o solo vibra, o veneno já está em movimento.",
         ],
     },
     "encounter_raposa": {
@@ -312,9 +312,9 @@ CHAPTER_SCENES = {
         "act": 2,
         "eyebrow": "Ato 2",
         "title": "Caçada Curta",
-        "lead": "Uma raposa de fogo cruza a vegetacao com chamas vivas presas ao pelo.",
+        "lead": "Uma raposa de fogo cruza a vegetação com chamas vivas presas ao pelo.",
         "body": [
-            "O confronto e rapido, ideal para farmar recursos antes da rota principal.",
+            "O confronto é rápido, ideal para farmar recursos antes da rota principal.",
         ],
     },
     "act_three_threshold": {
@@ -322,15 +322,15 @@ CHAPTER_SCENES = {
         "act": 3,
         "eyebrow": "Ato 3",
         "title": "O limiar da caverna",
-        "lead": "A entrada sagrada esta perto, mas os arredores sao guardados por bestas mais antigas e inteligentes.",
+        "lead": "A entrada sagrada está perto, mas os arredores sóo guardados por bestas mais antigas e inteligentes.",
         "body": [
-            "Entre pedras rachadas e raizes profundas, uma flor de prata com miolo dourado cresce sozinha, como se tivesse resistido ao tempo inteiro. Voce a recolhe com cuidado.",
-            "A energia do lugar muda. O ar pesa. Seja pela mata mais fechada, seja pela boca escura da caverna, ha algo observando cada passo.",
+            "Entre pedras rachadas e raízes profundas, uma flor de prata com miolo dourado cresce sozinha, como se tivesse resistido ao tempo inteiro. Você a recolhe com cuidado.",
+            "A energia do lugar muda. O ar pesa. Seja pela mata mais fechada, seja pela boca escura da caverna, há algo observando cada passo.",
         ],
         "options": [
-            {"action": "go_aranha", "label": "Entrar pelos tuneis quentes", "summary": "Cheiro de fogo, teias e pedra rachada."},
-            {"action": "go_lupus", "label": "Contornar pela mata profunda", "summary": "Sombras, olfato predatorio e passos circulares."},
-            {"action": "go_passaro", "label": "Farmar na encosta", "summary": "Uma caçada extra para reforcar recursos."},
+            {"action": "go_aranha", "label": "Entrar pelos túneis quentes", "summary": "Cheiro de fogo, teias e pedra rachada."},
+            {"action": "go_lupus", "label": "Contornar pela mata profunda", "summary": "Sombras, olfato predatório e passos circulares."},
+            {"action": "go_passaro", "label": "Farmar na encosta", "summary": "Uma caçada extra para reforçar recursos."},
         ],
     },
     "encounter_aranha": {
@@ -348,7 +348,7 @@ CHAPTER_SCENES = {
         "act": 3,
         "eyebrow": "Ato 3",
         "title": "Olhos na Mata Profunda",
-        "lead": "O lupus nao ruge. Ele circula, avalia e espera o momento exato para marcar sua presa.",
+        "lead": "O lupus não ruge. Ele circula, avalia e espera o momento exato para marcar sua presa.",
         "body": [
             "A floresta se fecha ao redor da trilha. Cada galho quebrado parece parte da armadilha.",
         ],
@@ -358,7 +358,7 @@ CHAPTER_SCENES = {
         "act": 3,
         "eyebrow": "Ato 3",
         "title": "Mergulho Assassino",
-        "lead": "Na encosta, uma ave predadora rasga o silencio e cai em mergulho sobre voce.",
+        "lead": "Na encosta, uma ave predadora rasga o silêncio e cai em mergulho sobre você.",
         "body": [
             "E um bom ponto de farm, mas o erro aqui vem do alto e termina depressa.",
         ],
@@ -368,31 +368,31 @@ CHAPTER_SCENES = {
         "act": 4,
         "eyebrow": "Ato 4",
         "title": "O Legado de Freya",
-        "lead": "No interior da caverna sagrada, a memoria de Freya foi transformada em prova para quem deseja seguir adiante.",
+        "lead": "No interior da caverna sagrada, a memória de Freya foi transformada em prova para quem deseja seguir adiante.",
         "body": [
-            "Tres espelhos mostram a gravidez revelada, o funeral sob chuva e a queda de Nyx Vandir. O caminho exige compreender o coracao de Rowan, nao apenas repetir nomes.",
-            "Mais adiante, uma estatua segura um livro fechado sobre o futuro do reino. No altar final, a flor certa deve ocupar o espaco da esperanca.",
+            "Três espelhos mostram a gravidez revelada, o funeral sob chuva e a queda de Nyx Vandir. O caminho exige compreender o coração de Rowan, não apenas repetir nomes.",
+            "Mais adiante, uma estátua segura um livro fechado sobre o futuro do reino. No altar final, a flor certa deve ocupar o espaço da esperança.",
         ],
     },
     "encounter_lobisomem": {
         "type": "encounter",
         "act": 5,
         "eyebrow": "Ato 5",
-        "title": "Guardiao Lunar da Memoria",
+        "title": "Guardião Lunar da Memoria",
         "lead": "A resposta ao enigma rompe o selo e desperta um lobisomem jovem tomado por energia ancestral.",
         "body": [
-            "A ultima prova nao e sobre lembrar Rowan e Freya. E sobre provar que voce pode suportar o peso desse legado.",
+            "A última prova não é sobre lembrar Rowan e Freya. É sobre provar que você pode suportar o peso desse legado.",
         ],
     },
     "chapter_complete": {
         "type": "complete",
         "act": 5,
         "eyebrow": "Ato 5",
-        "title": "A memoria responde",
+        "title": "A memória responde",
         "lead": "A prova foi vencida. O legado de Freya e Rowan agora toca diretamente o seu personagem.",
         "body": [
-            "A caverna nao entregou apenas tesouro. Ela confirmou que o futuro de Elandoria pertence a quem compreende dor, paz e responsabilidade.",
-            "Seu personagem deixa o local com novos recursos, um artefato estranho e a certeza de que a historia maior do reino apenas comecou.",
+            "A caverna não entregou apenas tesouro. Ela confirmou que o futuro de Elandoria pertence a quem compreende dor, paz e responsabilidade.",
+            "Seu personagem deixa o local com novos recursos, um artefato estranho e a certeza de que a história maior do reino apenas começou.",
         ],
     },
 }

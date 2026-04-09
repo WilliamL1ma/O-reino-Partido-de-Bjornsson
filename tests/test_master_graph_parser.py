@@ -90,10 +90,10 @@ class MasterGraphParserTests(unittest.TestCase):
 
     def test_extracts_actions_from_voce_pode_header(self) -> None:
         narration = (
-            "Aqui voce esta, diante da fonte, com a escolha de beber agua ou nao. Voce pode:\n\n"
-            "* Beber agua e tentar superar seu medo\n"
-            "* Nao beber agua e continuar sua jornada sem ela\n"
-            "* Voltar a clareira e procurar outra fonte de agua\n"
+            "Aqui você está, diante da fonte, com a escolha de beber água ou não. Você pode:\n\n"
+            "* Beber água e tentar superar seu medo\n"
+            "* Não beber água e continuar sua jornada sem ela\n"
+            "* Voltar à clareira e procurar outra fonte de água\n"
             "* Fazer outra coisa"
         )
 
@@ -101,14 +101,14 @@ class MasterGraphParserTests(unittest.TestCase):
 
         self.assertEqual(
             cleaned_narration,
-            "Aqui voce esta, diante da fonte, com a escolha de beber agua ou nao.",
+            "Aqui você está, diante da fonte, com a escolha de beber água ou não.",
         )
         self.assertEqual(
             actions,
             [
-                "Beber agua e tentar superar seu medo",
-                "Nao beber agua e continuar sua jornada sem ela",
-                "Voltar a clareira e procurar outra fonte de agua",
+                "Beber água e tentar superar seu medo",
+                "Não beber água e continuar sua jornada sem ela",
+                "Voltar à clareira e procurar outra fonte de água",
                 "Fazer outra coisa",
             ],
         )
@@ -116,7 +116,7 @@ class MasterGraphParserTests(unittest.TestCase):
     def test_extracts_actions_from_aqui_estao_algumas_sugestoes_header(self) -> None:
         narration = (
             "Voce observa a clareira e percebe movimentos entre os animais.\n\n"
-            "Aqui estao algumas sugestoes de acoes possiveis:\n\n"
+            "Aqui estão algumas sugestões de ações possíveis:\n\n"
             "* Continue a observar o animal grande e os menores\n"
             "* Tente se aproximar mais da clareira\n"
             "* Volte para a floresta para continuar explorando\n"
@@ -166,9 +166,9 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
     def test_soften_player_intent_preserves_attack_but_reduces_gore(self) -> None:
-        softened = self.master_graph._soften_player_intent("eu pego minha adaga e enfio no coracao dele")
+        softened = self.master_graph._soften_player_intent("eu pego minha adaga e enfio no coração dele")
         self.assertNotIn("enfio", softened.lower())
-        self.assertNotIn("coracao", softened.lower())
+        self.assertNotIn("coração", softened.lower())
         self.assertIn("adaga", softened.lower())
 
     def test_sanitize_actions_extracts_text_from_dict_items(self) -> None:
@@ -181,9 +181,9 @@ class MasterGraphParserTests(unittest.TestCase):
 
     def test_parse_json_prefers_embedded_dynamic_actions_over_fallback(self) -> None:
         raw_text = json_text = (
-            '{"narration": "Aqui voce esta, diante da fonte, com a escolha de beber agua ou nao. '
-            'Voce pode:\\n\\n* Beber agua e tentar superar seu medo\\n* Nao beber agua e continuar '
-            'sua jornada sem ela\\n* Voltar a clareira e procurar outra fonte de agua\\n* Fazer '
+            '{"narration": "Aqui você está, diante da fonte, com a escolha de beber água ou não. '
+            'Você pode:\\n\\n* Beber água e tentar superar seu medo\\n* Não beber água e continuar '
+            'sua jornada sem ela\\n* Voltar à clareira e procurar outra fonte de água\\n* Fazer '
             'outra coisa", "suggested_actions": [], "event": null, "next_scene": null}'
         )
 
@@ -201,25 +201,25 @@ class MasterGraphParserTests(unittest.TestCase):
 
         self.assertEqual(
             narration,
-            "Aqui voce esta, diante da fonte, com a escolha de beber agua ou nao.",
+            "Aqui você está, diante da fonte, com a escolha de beber água ou não.",
         )
         self.assertIsNone(event)
         self.assertIsNone(next_scene)
         self.assertEqual(
             actions,
             [
-                "Beber agua e tentar superar seu medo",
-                "Nao beber agua e continuar sua jornada sem ela",
-                "Voltar a clareira e procurar outra fonte de agua",
+                "Beber água e tentar superar seu medo",
+                "Não beber água e continuar sua jornada sem ela",
+                "Voltar à clareira e procurar outra fonte de água",
                 "Fazer outra coisa",
             ],
         )
 
     def test_parse_json_builds_contextual_actions_for_post_combat_scene(self) -> None:
         raw_text = (
-            '{"narration": "Voce lanca o feitico de fogo diretamente no goblin. '
-            'Com o goblin derrotado, voce agora esta sozinho na trilha, com o corpo dele '
-            'queimando ao seu lado. Voce pode ouvir sons de animais selvagens se aproximando.", '
+            '{"narration": "Você lança o feitiço de fogo diretamente no goblin. '
+            'Com o goblin derrotado, você agora está sozinho na trilha, com o corpo dele '
+            'queimando ao seu lado. Você pode ouvir sons de animais selvagens se aproximando.", '
             '"suggested_actions": [], "event": null, "next_scene": null}'
         )
 
@@ -322,7 +322,7 @@ class MasterGraphParserTests(unittest.TestCase):
         valid, feedback = self.master_graph._build_review_feedback(
             (
                 "Voce observa a clareira.\n\n"
-                "Aqui estao algumas sugestoes de acoes possiveis:\n\n"
+                "Aqui estão algumas sugestões de ações possíveis:\n\n"
                 "* Continue a observar\n"
                 "* Tente se aproximar mais"
             ),
@@ -338,11 +338,11 @@ class MasterGraphParserTests(unittest.TestCase):
         )
 
         self.assertFalse(valid)
-        self.assertIn("lista de sugestoes embutida", feedback)
+        self.assertIn("lista de sugestões embutida", feedback)
 
     def test_review_feedback_flags_model_refusal(self) -> None:
         valid, feedback = self.master_graph._build_review_feedback(
-            "Nao posso prosseguir com essa sequencia. Posso ajudar com outra acao?",
+            "Não posso prosseguir com essa sequência. Posso ajudar com outra ação?",
             [
                 "Observar a reacao imediata da criatura antes de agir",
                 "Tentar falar ou demonstrar intencoes sem atacar",
@@ -372,7 +372,7 @@ class MasterGraphParserTests(unittest.TestCase):
             "como ele se afasta se ele foi atacado com a adaga e ela esta cravada no peito dele?",
             [
                 {"role": "gm", "content": "Voce se aproxima do gato e ele volta a cheirar sua mao."},
-                {"role": "player", "content": "eu pego minha adaga e enfio no coracao dele"},
+                {"role": "player", "content": "eu pego minha adaga e enfio no coração dele"},
             ],
         )
 
@@ -382,7 +382,7 @@ class MasterGraphParserTests(unittest.TestCase):
     def test_entity_continuity_ignores_negated_player_entity(self) -> None:
         broken = self.master_graph._entity_continuity_broken(
             "O goblin esta morto.",
-            "nao estamos falando de goblin",
+            "não estamos falando de goblin",
             [{"role": "gm", "content": "O gato ainda observa sua mao com cautela."}],
         )
         self.assertTrue(broken)
@@ -392,19 +392,19 @@ class MasterGraphParserTests(unittest.TestCase):
             "Voce pega sua adaga e a crava no peito do gato, mas ele comeca a se afastar e volta a cheirar sua mao.",
             [
                 "Tentar acalmar o gato",
-                "Preparar-se para uma possivel defesa do gato",
+                "Preparar-se para uma possível defesa do gato",
             ],
             [
                 "Observar a reacao imediata da criatura antes de agir",
                 "Tentar falar ou demonstrar intencoes sem atacar",
             ],
             None,
-            "eu pego minha adaga e enfio no coracao dele",
+            "eu pego minha adaga e enfio no coração dele",
             [{"role": "gm", "content": "O gato estava perto e atento a sua presenca."}],
         )
 
         self.assertFalse(valid)
-        self.assertIn("causalidade fisica", feedback)
+        self.assertIn("causalidade física", feedback)
 
     def test_finalize_node_uses_consistency_fallback_when_review_stays_invalid(self) -> None:
         result = self.master_graph._finalize_node(
@@ -414,8 +414,8 @@ class MasterGraphParserTests(unittest.TestCase):
                 "fallback_actions": ["fallback"],
                 "character_state": {"recent_reward": "nenhum"},
                 "review_valid": False,
-                "player_message": "eu pego minha adaga e enfio no coracao dele",
-                "recent_messages": [{"role": "gm", "content": "O gato ainda esta diante de voce."}],
+                "player_message": "eu pego minha adaga e enfio no coração dele",
+                "recent_messages": [{"role": "gm", "content": "O gato ainda está diante de você."}],
                 "draft_event": None,
                 "draft_next_scene": None,
             }
@@ -426,7 +426,7 @@ class MasterGraphParserTests(unittest.TestCase):
             result["result_suggested_actions"],
             [
                 "Medir a reacao imediata do alvo ao seu ataque",
-                "Ajustar sua posicao antes de um possivel contra-ataque",
+                "Ajustar sua posição antes de um possível contra-ataque",
                 "Observar o entorno para ver se mais alguem reage ao confronto",
                 "Decidir se continua a ofensiva ou se recua com cautela",
             ],

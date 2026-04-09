@@ -118,8 +118,8 @@ if (raceModal) {
       threshold.textContent = `Necessario ${selectedRace.threshold}+ no d20`;
       status.textContent = "Destino indefinido";
       description.textContent =
-        `Para se tornar ${selectedRace.name}, voce precisa tirar ${selectedRace.threshold} ou mais em um d20. ` +
-        `Se falhar, seu personagem se tornara ${selectedRace.inferior} e nao recebera o status completo dessa raca ate provar seu valor.`;
+        `Para se tornar ${selectedRace.name}, você precisa tirar ${selectedRace.threshold} ou mais em um d20. ` +
+        `Se falhar, seu personagem se tornará ${selectedRace.inferior} e não receberá o status completo dessa raça até provar seu valor.`;
       dice.textContent = "?";
       result.textContent = "";
       rollButton.disabled = false;
@@ -162,7 +162,7 @@ if (raceModal) {
 
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.message || "Nao foi possivel concluir a rolagem.");
+        throw new Error(payload.message || "Não foi possível concluir a rolagem.");
       }
 
       const elapsed = Date.now() - startedAt;
@@ -264,7 +264,7 @@ if (statusModal) {
 
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.message || "Nao foi possivel rolar os status.");
+        throw new Error(payload.message || "Não foi possível rolar os status.");
       }
 
       if (payload.completed && !payload.attribute) {
@@ -435,7 +435,7 @@ if (gameRollModal) {
       });
       const startPayload = await startResponse.json();
       if (!startResponse.ok || !startPayload.ok) {
-        throw new Error(startPayload.message || "Nao foi possivel iniciar a rolagem.");
+        throw new Error(startPayload.message || "Não foi possível iniciar a rolagem.");
       }
 
       const resolutionPromise = fetch("/jogo/rolar/consequencia", {
@@ -446,7 +446,7 @@ if (gameRollModal) {
       }).then(async (response) => {
         const payload = await response.json();
         if (!response.ok || !payload.ok) {
-          throw new Error(payload.message || "Nao foi possivel resolver a rolagem.");
+          throw new Error(payload.message || "Não foi possível resolver a rolagem.");
         }
         return payload;
       });
@@ -509,7 +509,7 @@ if (gameRollModal) {
           });
         } else {
           const item = document.createElement("li");
-          item.textContent = "As proximas opcoes aparecerao aqui quando o mestre sugerir caminhos.";
+          item.textContent = "As próximas opções aparecerão aqui quando o mestre sugerir caminhos.";
           suggestionList.appendChild(item);
         }
       }
@@ -528,7 +528,7 @@ if (gameRollModal) {
       window.clearInterval(thinkingIntervalId);
       if (thinkingArticle && thinkingParagraph) {
         thinkingArticle.classList.remove("game-chat__message--thinking");
-        thinkingParagraph.textContent = "O mestre demora mais do que o esperado para fechar essa consequencia. Tente novamente.";
+        thinkingParagraph.textContent = "O mestre demora mais do que o esperado para fechar essa consequência. Tente novamente.";
       }
       dice.textContent = "!";
       result.textContent = "A rolagem vacilou por um instante. Tente novamente.";
@@ -574,14 +574,14 @@ if (gameChatForm) {
     suggestionList.innerHTML = "";
     if (blocked) {
       const item = document.createElement("li");
-      item.textContent = "As sugestoes ficam disponiveis novamente depois que a rolagem pendente for resolvida.";
+      item.textContent = "As sugestões ficam disponíveis novamente depois que a rolagem pendente for resolvida.";
       suggestionList.appendChild(item);
       return;
     }
 
     if (!Array.isArray(actions) || actions.length === 0) {
       const item = document.createElement("li");
-      item.textContent = "As proximas opcoes aparecerao aqui quando o mestre sugerir caminhos.";
+      item.textContent = "As próximas opções aparecerão aqui quando o mestre sugerir caminhos.";
       suggestionList.appendChild(item);
       return;
     }
@@ -726,7 +726,7 @@ if (gameChatForm) {
 
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.message || "Nao foi possivel falar com o mestre.");
+        throw new Error(payload.message || "Não foi possível falar com o mestre.");
       }
 
       if (payload.pending_event && !String(payload.gm_message || "").trim()) {

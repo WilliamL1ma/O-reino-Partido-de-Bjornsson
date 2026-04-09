@@ -79,21 +79,21 @@ def review_narration(
     cleaned = normalize_narrative_dialogue(cleaned)
 
     if not cleaned.strip():
-        feedback.append("A narracao ficou vazia.")
+        feedback.append("A narração ficou vazia.")
     if narration != cleaned:
         feedback.append("Remova JSON cru, markdown tecnico ou estruturas internas vazadas.")
     if re.search(r"\b(next_scene|story_event)\b", cleaned, flags=re.IGNORECASE):
         feedback.append("Remova marcadores tecnicos como next_scene ou story_event do texto visivel ao jogador.")
     if _narration_wrapped_in_quotes(cleaned):
-        feedback.append("A narracao do mestre veio inteira entre aspas. Deixe aspas apenas em falas de personagens.")
+        feedback.append("A narração do mestre veio inteira entre aspas. Deixe aspas apenas em falas de personagens.")
     if looks_like_model_refusal(narration):
-        feedback.append("A narracao virou recusa do modelo. Continue a cena normalmente.")
+        feedback.append("A narração virou recusa do modelo. Continue a cena normalmente.")
     if entity_continuity_broken(narration, player_message, recent_messages):
-        feedback.append("A narracao trocou a entidade em foco sem base no contexto.")
+        feedback.append("A narração trocou a entidade em foco sem base no contexto.")
     if physical_causality_broken(player_message, narration):
-        feedback.append("A narracao quebrou a causalidade fisica imediata da cena.")
+        feedback.append("A narração quebrou a causalidade física imediata da cena.")
     if _contains_anachronism(cleaned):
-        feedback.append("A narracao usou objeto ou referencia anacronica para fantasia medieval. Troque por equivalente coerente com o mundo.")
+        feedback.append("A narração usou objeto ou referencia anacronica para fantasia medieval. Troque por equivalente coerente com o mundo.")
     return ReviewResult(valid=not feedback, feedback=" ".join(feedback).strip())
 
 
@@ -108,17 +108,17 @@ def review_suggestions(
     feedback: list[str] = []
 
     if len(sanitized) < 2 or len(sanitized) > 5:
-        feedback.append("As sugestoes devem trazer de 2 a 5 opcoes.")
+        feedback.append("As sugestões devem trazer de 2 a 5 opções.")
     if actions_contradict_narration(sanitized, narration):
-        feedback.append("As sugestoes contradizem a narracao final.")
+        feedback.append("As sugestões contradizem a narração final.")
     if actions_are_too_generic(sanitized, fallback_actions):
-        feedback.append("As sugestoes ficaram genericas ou coladas no fallback.")
+        feedback.append("As sugestões ficaram genéricas ou coladas no fallback.")
     if _looks_like_english_actions(sanitized):
-        feedback.append("As sugestoes vieram em ingles. Reescreva todas em portugues do Brasil.")
+        feedback.append("As sugestões vieram em inglês. Reescreva todas em português do Brasil.")
 
     contextual = contextual_actions_from_narration(narration)
     if contextual and sanitized == fallback_actions[:5]:
-        feedback.append("As sugestoes nao acompanharam o momento narrado.")
+        feedback.append("As sugestões não acompanharam o momento narrado.")
 
     return sanitized, ReviewResult(valid=not feedback, feedback=" ".join(feedback).strip())
 
@@ -128,13 +128,13 @@ def build_narrative_fallback(state: dict) -> str:
     if mode == "intro":
         return (
             f"Voce esta em {state.get('scene_title', 'um novo ponto da jornada')}. "
-            f"{state.get('scene_lead', 'O lugar exige atencao imediata enquanto a historia comeca a se mover diante de voce.')}"
+            f"{state.get('scene_lead', 'O lugar exige atenção imediata enquanto a história comeca a se mover diante de você.')}"
         ).strip()
     if mode == "resolution":
         resolution = state.get("roll_resolution", {})
         outcome = str(resolution.get("outcome", "")).strip() or "resultado incerto"
         scene = str(resolution.get("scene", "")).strip() or str(state.get("scene_title", "")).strip()
-        return f"A consequencia da rolagem se impõe em {scene}. O momento se resolve como {outcome}, e a cena muda de peso diante de voce."
+        return f"A consequência da rolagem se impõe em {scene}. O momento se resolve como {outcome}, e a cena muda de peso diante de você."
     return build_consistency_fallback(
         str(state.get("player_message", "")),
         state.get("recent_messages", []),

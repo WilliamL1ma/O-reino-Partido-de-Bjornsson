@@ -1,6 +1,6 @@
 # O Reino Partido de Bjornsson
 
-Projeto inicial de apresentacao do RPG O Reino Partido de Bjornsson com:
+Projeto inicial de apresentação do RPG O Reino Partido de Bjornsson com:
 
 - backend em Flask
 - frontend em HTML, CSS e JavaScript
@@ -19,12 +19,12 @@ py -m pip install -r requirements.txt
 py backend/run.py
 ```
 
-O projeto le as configuracoes do arquivo `.env`.
-Ao iniciar localmente, a aplicacao roda as migracoes do Alembic antes de subir o servidor Flask.
+O projeto lê as configurações do arquivo `.env`.
+Ao iniciar localmente, a aplicação roda as migrações do Alembic antes de subir o servidor Flask.
 
 ## Docker Desktop
 
-Para subir a aplicacao Flask e o PostgreSQL em containers:
+Para subir a aplicação Flask e o PostgreSQL em containers:
 
 ```bash
 docker compose up -d --build
@@ -36,13 +36,13 @@ Para derrubar:
 docker compose down
 ```
 
-Para derrubar removendo tambem o volume do banco:
+Para derrubar removendo também o volume do banco:
 
 ```bash
 docker compose down -v
 ```
 
-Servicos:
+Serviços:
 
 - app Flask: `http://127.0.0.1:8000`
 - PostgreSQL: `127.0.0.1:5432`
@@ -67,6 +67,6 @@ SECRET_KEY=troque-esta-chave-em-producao
 TOTP_ISSUER_NAME=O Reino Partido de Bjornsson
 ```
 
-Ao iniciar, a aplicacao executa `alembic upgrade head` e garante a estrutura do banco.
+Ao iniciar, a aplicação executa `alembic upgrade head` e garante a estrutura do banco.
 
 Abra `http://127.0.0.1:8000`.

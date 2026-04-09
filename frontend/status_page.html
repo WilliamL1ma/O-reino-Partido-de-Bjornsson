@@ -31,7 +31,7 @@
           </div>
         </a>
         <form action="/logout" method="post">
-          <button class="topbar__cta" type="submit">Sair da sessao</button>
+          <button class="topbar__cta" type="submit">Sair da sessão</button>
         </form>
       </header>
 
@@ -50,16 +50,16 @@
           <p class="eyebrow">Etapa 3</p>
           <h2>{{ character.name }}</h2>
           <p class="player-panel__lead">
-            A raca foi definida como <strong>{{ character.race_name }}</strong>. Agora role todos os status em sequencia.
+            A raça foi definida como <strong>{{ character.race_name }}</strong>. Agora role todos os status em sequência.
           </p>
 
           <div class="player-grid player-grid--four">
             <article class="player-card">
-              <p class="player-card__label">Raca atual</p>
+              <p class="player-card__label">Raça atual</p>
               <ul class="player-card__list">
-                <li><strong>Raca:</strong> {{ character.race_name }}</li>
+                <li><strong>Raça:</strong> {{ character.race_name }}</li>
                 {% if character.race_status == "inferior" %}
-                <li><strong>Condicao:</strong> Versao inferior</li>
+                <li><strong>Condição:</strong> Versão inferior</li>
                 {% endif %}
               </ul>
             </article>
@@ -68,7 +68,7 @@
               <p class="player-card__label">Status</p>
               <div class="status-card__empty">
                 <strong>Status pendentes</strong>
-                <p>O modal revelara FOR, DEX, CON, INT, SAB, CAR e PER um por vez.</p>
+                <p>O modal revelará FOR, DEX, CON, INT, SAB, CAR e PER um por vez.</p>
               </div>
             </article>
           </div>
@@ -78,7 +78,7 @@
               Rolar status
             </button>
             {% if character.race_slug not in ["anjo", "demonio"] %}
-            <a class="button button--ghost" href="/jogador/raca">Trocar raca</a>
+            <a class="button button--ghost" href="/jogador/raca">Trocar raça</a>
             {% endif %}
             <form action="/jogador/resetar-criacao" method="post">
               <button class="button button--ghost" type="submit">Resetar ficha</button>
@@ -92,13 +92,13 @@
       <div class="race-modal__backdrop"></div>
       <div class="race-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
         <p class="eyebrow">Rolagem de status</p>
-        <h2 id="status-modal-title" class="race-modal__title">Os atributos do personagem estao sendo revelados.</h2>
+        <h2 id="status-modal-title" class="race-modal__title">Os atributos do personagem estão sendo revelados.</h2>
         <p class="race-modal__text" id="status-modal-description">
-          O modal so sera encerrado depois que todos os status forem rolados.
+          O modal só será encerrado depois que todos os status forem rolados.
         </p>
         <div class="race-modal__meta">
           <span class="race-modal__threshold" id="status-modal-progress">0/7 rolados</span>
-          <span class="race-modal__status" id="status-modal-current">Proximo: FOR</span>
+          <span class="race-modal__status" id="status-modal-current">Próximo: FOR</span>
         </div>
         <div class="race-modal__stage">
           <div class="race-modal__pulse"></div>

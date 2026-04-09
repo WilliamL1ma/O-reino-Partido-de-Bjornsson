@@ -70,7 +70,7 @@ class GameMasterServiceTests(unittest.TestCase):
             story_scene="encounter_goblin",
             story_act=1,
         )
-        recent_messages = [SimpleNamespace(role="gm", content="O goblin rosna diante de voce.")]
+        recent_messages = [SimpleNamespace(role="gm", content="O goblin rosna diante de você.")]
         memory_summary = SimpleNamespace(summary_text="Resumo consolidado.")
         pending_event = {"type": "encounter", "monster_name": "Goblin Cacador"}
 
@@ -164,7 +164,7 @@ class GameMasterServiceTests(unittest.TestCase):
             story_scene="encounter_goblin",
             story_act=1,
         )
-        graph_state = {
+        graph_staté = {
             "authoritative_state": {
                 "scene_key": "encounter_goblin",
                 "current_target": "Goblin Cacador",

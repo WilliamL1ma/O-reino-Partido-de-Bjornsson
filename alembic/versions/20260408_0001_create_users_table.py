@@ -1,8 +1,8 @@
-"""create users table with 2fa fields
+"""cria a tabela de usuários com campos de 2FA
 
-Revision ID: 20260408_0001
-Revises:
-Create Date: 2026-04-08 02:00:00
+ID da revisão: 20260408_0001
+Revisa:
+Data de criação: 2026-04-08 02:00:00
 """
 
 from alembic import op

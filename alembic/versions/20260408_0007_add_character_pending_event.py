@@ -1,8 +1,8 @@
-"""add character pending event
+"""adiciona evento pendente ao personagem
 
-Revision ID: 20260408_0007
-Revises: 20260408_0006
-Create Date: 2026-04-08 00:07:00.000000
+ID da revisão: 20260408_0007
+Revisa: 20260408_0006
+Data de criação: 2026-04-08 00:07:00.000000
 """
 
 from alembic import op

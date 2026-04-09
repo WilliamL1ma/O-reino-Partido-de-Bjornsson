@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-# Thin request/response adapters around the canonical master graph.
+# Adaptadores leves de requisição e resposta em torno do grafo mestre canônico.
 
 from .authority import sanitize_suggested_actions
 

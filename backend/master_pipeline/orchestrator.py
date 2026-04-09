@@ -9,7 +9,7 @@ def _invoke_master_graph(state: dict) -> dict:
     return invoke_master_graph(state)
 
 
-# Compatibility facade that forwards directly to the canonical LangGraph.
+# Fachada de compatibilidade que encaminha diretamente para o LangGraph canônico.
 class MasterOrchestrator:
     def __init__(self, graph_runner: Callable[[dict], dict] | object | None = None) -> None:
         if graph_runner is None:

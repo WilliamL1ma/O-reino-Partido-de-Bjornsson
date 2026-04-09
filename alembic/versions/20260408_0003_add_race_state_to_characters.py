@@ -1,8 +1,8 @@
-"""add race state fields to characters
+"""adiciona campos de estado de raça aos personagens
 
-Revision ID: 20260408_0003
-Revises: 20260408_0002
-Create Date: 2026-04-08 03:35:00
+ID da revisão: 20260408_0003
+Revisa: 20260408_0002
+Data de criação: 2026-04-08 03:35:00
 """
 
 from alembic import op

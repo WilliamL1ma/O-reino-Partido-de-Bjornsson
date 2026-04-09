@@ -1,8 +1,8 @@
-"""add game memory tables
+"""adiciona tabelas de memória do jogo
 
-Revision ID: 20260408_0006
-Revises: 20260408_0005
-Create Date: 2026-04-08 00:06:00.000000
+ID da revisão: 20260408_0006
+Revisa: 20260408_0005
+Data de criação: 2026-04-08 00:06:00.000000
 """
 
 from alembic import op

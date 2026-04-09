@@ -1,8 +1,8 @@
-"""add character attributes
+"""adiciona atributos ao personagem
 
-Revision ID: 20260408_0004
-Revises: 20260408_0003
-Create Date: 2026-04-08 00:40:00
+ID da revisão: 20260408_0004
+Revisa: 20260408_0003
+Data de criação: 2026-04-08 00:40:00
 """
 
 from alembic import op

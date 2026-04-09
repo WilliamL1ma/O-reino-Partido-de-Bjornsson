@@ -134,7 +134,7 @@ def _narrative_generate_node(state: MasterGraphState) -> MasterGraphState:
             narrative_force_fallback=False,
             narrative_error="",
         )
-    except Exception as error:  # pragma: no cover - exercised through tests via routing.
+    except Exception as error:  # pragma: no cover - exercitado pelos testes via roteamento.
         log_stage(logging.WARNING, "narrative_failed", str(error), mode=str(state.get("mode", "turn")))
         return _build_node_update(
             state,
@@ -200,7 +200,7 @@ def _revise_narrative_node(state: MasterGraphState) -> MasterGraphState:
             narrative_force_fallback=False,
             narrative_error="",
         )
-    except Exception as error:  # pragma: no cover - exercised through tests via routing.
+    except Exception as error:  # pragma: no cover - exercitado pelos testes via roteamento.
         log_stage(logging.WARNING, "narrative_failed", str(error), mode=str(state.get("mode", "turn")))
         return _build_node_update(
             state,
@@ -251,7 +251,7 @@ def _generate_suggestions_node(state: MasterGraphState) -> MasterGraphState:
             suggestion_force_fallback=False,
             suggestion_error="",
         )
-    except Exception as error:  # pragma: no cover - exercised through tests via routing.
+    except Exception as error:  # pragma: no cover - exercitado pelos testes via roteamento.
         log_stage(logging.WARNING, "suggestions_failed", str(error), mode=str(state.get("mode", "turn")))
         return _build_node_update(
             state,
@@ -315,7 +315,7 @@ def _revise_suggestions_node(state: MasterGraphState) -> MasterGraphState:
             suggestion_force_fallback=False,
             suggestion_error="",
         )
-    except Exception as error:  # pragma: no cover - exercised through tests via routing.
+    except Exception as error:  # pragma: no cover - exercitado pelos testes via roteamento.
         log_stage(logging.WARNING, "suggestions_failed", str(error), mode=str(state.get("mode", "turn")))
         return _build_node_update(
             state,

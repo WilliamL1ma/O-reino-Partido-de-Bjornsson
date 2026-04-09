@@ -1,8 +1,8 @@
-"""add character progress fields
+"""adiciona campos de progresso do personagem
 
-Revision ID: 20260408_0005
-Revises: 20260408_0004
-Create Date: 2026-04-08 00:05:00.000000
+ID da revisão: 20260408_0005
+Revisa: 20260408_0004
+Data de criação: 2026-04-08 00:05:00.000000
 """
 
 from alembic import op

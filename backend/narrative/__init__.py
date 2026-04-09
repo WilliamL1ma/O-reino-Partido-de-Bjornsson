@@ -1,6 +1,6 @@
-"""Narrative package.
+"""Pacote de narrativa.
 
-Keep package import side effects minimal so graph/state modules can import
-submodules without pulling service layers into circular chains.
+Mantém os efeitos colaterais de importação no mínimo para que módulos de
+grafo e estado possam importar submódulos sem puxar camadas de serviço para
+cadeias circulares.
 """
-

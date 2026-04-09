@@ -1,8 +1,8 @@
-"""create characters table
+"""cria a tabela de personagens
 
-Revision ID: 20260408_0002
-Revises: 20260408_0001
-Create Date: 2026-04-08 03:10:00
+ID da revisão: 20260408_0002
+Revisa: 20260408_0001
+Data de criação: 2026-04-08 03:10:00
 """
 
 from alembic import op

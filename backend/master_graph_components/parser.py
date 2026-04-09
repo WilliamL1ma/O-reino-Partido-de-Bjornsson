@@ -101,7 +101,7 @@ def normalize_narrative_dialogue(narration: str) -> str:
     if not text:
         return text
 
-    # Remove outer quotes when the whole narration was accidentally serialized as one giant string.
+    # Remove aspas externas quando toda a narração for serializada por engano como uma única string gigante.
     if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
         inner = text[1:-1].strip()
         if inner:
@@ -113,7 +113,7 @@ def normalize_narrative_dialogue(narration: str) -> str:
 
     text = text.replace("“", '"').replace("”", '"').replace("’", "'").replace("‘", "'")
 
-    # Normalize dialogue introduced with single quotes after a speech verb.
+    # Normaliza diálogos introduzidos com aspas simples após um verbo de fala.
     text = re.sub(
         r"(:\s*)'([^'\n]+)'",
         lambda match: f'{match.group(1)}"{match.group(2).strip()}"',

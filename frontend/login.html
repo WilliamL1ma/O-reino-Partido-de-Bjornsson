@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Acesse o Capítulo I de O Reino Partido de Bjornsson."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--login">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img
+              src="/assets/logo-bjornsson-dourado.png"
+              alt="Logo de O Reino Partido de Bjornsson"
+            />
+          </span>
+          <div>
+            <p class="eyebrow">Acesso ao capítulo</p>
+            <h1>O Reino Partido de Bjornsson</h1>
+          </div>
+        </a>
+        <a class="topbar__cta" href="/">Voltar à apresentação</a>
+      </header>
+
+      <main class="login-layout">
+        <section class="login-panel reveal is-visible">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="flash-stack flash-stack--compact">
+            {% for category, message in messages %}
+            <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          <p class="eyebrow">Capítulo I</p>
+          <h2>Entre para acessar a origem de Elandoria.</h2>
+          <p class="login-panel__lead">
+            Faça login para iniciar sua entrada no primeiro capítulo e seguir
+            para a abertura narrativa de O Reino Partido de Bjornsson.
+          </p>
+
+          <form class="login-form" action="/login" method="post">
+            <label class="input-group">
+              <span>E-mail</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="seuemail@reino.com"
+                autocomplete="email"
+              />
+            </label>
+
+            <label class="input-group">
+              <span>Senha</span>
+              <input
+                type="password"
+                name="password"
+                placeholder="Digite sua senha"
+                autocomplete="current-password"
+              />
+            </label>
+
+            <button class="button button--primary login-form__submit" type="submit">
+              Entrar no Capítulo I
+            </button>
+          </form>
+
+          <div class="login-links">
+            <a href="/">Voltar para a home</a>
+            <a href="/registro">Criar conta</a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

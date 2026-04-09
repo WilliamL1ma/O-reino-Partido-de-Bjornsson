@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escolher Raça | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Escolha a raça do seu personagem antes de seguir para a classe."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--player">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img
+              src="/assets/logo-bjornsson-dourado.png"
+              alt="Logo de O Reino Partido de Bjornsson"
+            />
+          </span>
+          <div>
+            <p class="eyebrow">Onboarding do personagem</p>
+            <h1>Escolha de raça</h1>
+          </div>
+        </a>
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessão</button>
+        </form>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <main class="player-layout">
+        <section class="player-panel">
+          <p class="eyebrow">Personagem em formação</p>
+          <h2>{{ character.name }}</h2>
+          <p class="player-panel__lead">
+            Sua ficha base já foi criada. Agora escolha a raça do personagem
+            para avançar para a etapa de classe.
+          </p>
+
+          <div class="hero__actions">
+            <form action="/jogador/resetar-criacao" method="post">
+              <button class="button button--ghost" type="submit">Resetar ficha</button>
+            </form>
+            <a class="button button--ghost" href="/jogador">Voltar para a ficha</a>
+          </div>
+
+          <div class="race-grid">
+            {% for race in races %}
+            <article class="race-card">
+              <p class="race-card__title">{{ race.name }}</p>
+              <p class="race-card__summary">{{ race.summary }}</p>
+              <ul class="race-card__traits">
+                {% for trait in race.traits %}
+                <li>{{ trait }}</li>
+                {% endfor %}
+              </ul>
+              {% if race.requirement %}
+              <p class="race-card__requirement">{{ race.requirement }}</p>
+              {% endif %}
+              {% if race.threshold %}
+              <button
+                class="button button--primary race-card__button js-race-trigger"
+                type="button"
+                data-race-slug="{{ race.slug }}"
+                data-race-name="{{ race.name }}"
+                data-race-threshold="{{ race.threshold }}"
+                data-race-inferior="{{ race.inferior_name }}"
+              >
+                Tentar {{ race.name }}
+              </button>
+              {% else %}
+              <form action="/jogador/raca" method="post">
+                <input type="hidden" name="race" value="{{ race.slug }}" />
+                <button class="button button--primary race-card__button" type="submit">
+                  Escolher {{ race.name }}
+                </button>
+              </form>
+              {% endif %}
+            </article>
+            {% endfor %}
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="race-modal" id="race-modal" hidden>
+      <div class="race-modal__backdrop" data-close-race-modal></div>
+      <div class="race-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="race-modal-title">
+        <p class="eyebrow">Rolagem especial</p>
+        <h2 id="race-modal-title" class="race-modal__title">Escolha lendária</h2>
+        <p class="race-modal__text" id="race-modal-description"></p>
+        <div class="race-modal__meta">
+          <span class="race-modal__threshold" id="race-modal-threshold">d20</span>
+          <span class="race-modal__status" id="race-modal-status">Destino indefinido</span>
+        </div>
+        <div class="race-modal__stage">
+          <div class="race-modal__pulse"></div>
+          <div class="race-modal__dice-shell">
+            <div class="race-modal__dice" id="race-modal-dice">?</div>
+          </div>
+        </div>
+        <p class="race-modal__result" id="race-modal-result"></p>
+        <div class="hero__actions">
+          <button class="button button--primary" id="race-modal-roll" type="button">
+            Rolar d20
+          </button>
+          <button class="button button--ghost" data-close-race-modal type="button">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

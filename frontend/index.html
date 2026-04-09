@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>O Reino Partido de Bjornsson | O Chamado do Reino</title>
+    <meta
+      name="description"
+      content="Entre em O Reino Partido de Bjornsson e descubra o primeiro capitulo, centrado na origem do Reino de Elandoria."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body id="top">
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand-mark">
+          <span class="brand-mark__crest">
+            <img
+              src="/assets/logo-bjornsson-dourado.png"
+              alt="Logo de O Reino Partido de Bjornsson"
+            />
+          </span>
+          <div>
+            <p class="eyebrow">RPG de fantasia</p>
+            <h1>O Reino Partido de Bjornsson</h1>
+          </div>
+        </div>
+        {% if current_user %}
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessao</button>
+        </form>
+        {% else %}
+        <a class="topbar__cta" href="/login">Jogar a primeira parte</a>
+        {% endif %}
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <main>
+        <section class="hero">
+          <div class="hero__copy reveal">
+            <p class="eyebrow">Capitulo I disponivel</p>
+            {% if current_user %}
+            <p class="hero__session">Sessao ativa: {{ current_user }}</p>
+            {% endif %}
+            <h2>Um reino nascido do amor, da perda e de uma promessa de guerra.</h2>
+            <p class="hero__lead">
+              O Reino Partido de Bjornsson comeca pela origem do Reino de
+              Elandoria. Este primeiro capitulo apresenta a tragedia que deu
+              forma a um novo reino e abre a campanha com tensao, perda,
+              memoria e destino.
+            </p>
+            <div class="hero__actions">
+              <a class="button button--primary" href="/login">Comecar a jornada</a>
+              <a class="button button--ghost" href="#mundo">Conhecer o reino</a>
+            </div>
+            <ul class="hero__stats">
+              <li>
+                <strong>01</strong>
+                <span>Origem de Elandoria</span>
+              </li>
+              <li>
+                <strong>RPG</strong>
+                <span>Fantasia dramatica medieval</span>
+              </li>
+              <li>
+                <strong>Escolhas</strong>
+                <span>Atmosfera, conflito e descoberta</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="hero__panel reveal reveal-delay">
+            <div class="hero-card">
+              <p class="hero-card__label">Cronicas de Elandoria</p>
+              <h3>Nem todo reino nasce de uma coroa.</h3>
+              <p>
+                Alguns comecam com uma cicatriz. O seu primeiro passo sera
+                atravessar a historia de Rowan e Freya e tocar o instante em
+                que Elandoria nasceu da dor, da guerra e de uma promessa.
+              </p>
+              <div class="hero-card__divider"></div>
+              <p class="hero-card__note">
+                O capitulo de abertura funciona como portal para o universo de
+                Bjornsson, mas seu foco narrativo esta na fundacao de
+                Elandoria e no legado deixado por essa origem.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section--story" id="mundo">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Abertura narrativa</p>
+            <h2>O que espera por voce no primeiro capitulo</h2>
+          </div>
+
+          <div class="story-grid">
+            <article class="story-card reveal">
+              <span class="story-card__index">I</span>
+              <h3>A origem de Elandoria</h3>
+              <p>
+                Antes dos reinos consolidados, uma tragedia entre amor,
+                preconceito e vinganca mudou o destino de muitas racas e abriu
+                o caminho para o nascimento de Elandoria.
+              </p>
+            </article>
+
+            <article class="story-card reveal">
+              <span class="story-card__index">II</span>
+              <h3>Rowan, Freya e a ruptura</h3>
+              <p>
+                O capitulo apresenta o conflito que destruiu uma familia,
+                arrastou povos para a guerra e transformou uma perda intima em
+                um acontecimento que redefiniu o mundo.
+              </p>
+            </article>
+
+            <article class="story-card reveal">
+              <span class="story-card__index">III</span>
+              <h3>O nascimento de um reino</h3>
+              <p>
+                Esta primeira parte entrega o comeco da lenda. O jogador entra
+                em contato com a fundacao de Elandoria enquanto o restante da
+                saga de Bjornsson permanece adiante.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section section--features">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Experiencia de entrada</p>
+            <h2>Uma apresentacao pensada para fisgar o jogador</h2>
+          </div>
+
+          <div class="feature-layout">
+            <article class="feature-panel reveal">
+              <p class="feature-panel__tag">Tom</p>
+              <h3>Fantasia nobre com peso emocional</h3>
+              <p>
+                A proposta visual e narrativa e seria, elegante e carregada de
+                presenca. O objetivo e fazer o jogador sentir o peso historico
+                da origem de Elandoria, nao apenas ler um resumo.
+              </p>
+            </article>
+
+            <article class="feature-panel reveal">
+              <p class="feature-panel__tag">Escopo</p>
+              <h3>Primeira parte como convite</h3>
+              <p>
+                A pagina apresenta com clareza que o jogo se chama Bjornsson,
+                mas que sua abertura narrativa comeca pela historia de origem do
+                Reino de Elandoria.
+              </p>
+            </article>
+
+            <article class="feature-panel reveal">
+              <p class="feature-panel__tag">Identidade</p>
+              <h3>Visual polido para um universo proprio</h3>
+              <p>
+                Ouro envelhecido, pedra, nevoa, contraste dramatico e tipografia
+                classica moldam uma apresentacao compativel com o tom epico do
+                projeto.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section section--cta" id="jogar">
+          <div class="cta-box reveal">
+            <p class="eyebrow">Primeira parte liberada</p>
+            <h2>O reino ja comecou a chamar.</h2>
+            <p>
+              Use esta tela como portal de entrada do projeto. Ela posiciona o
+              Capitulo I como a origem de Elandoria dentro da campanha maior de
+              O Reino Partido de Bjornsson.
+            </p>
+            <div class="hero__actions">
+              <a class="button button--primary" href="/login">Entrar no Capitulo I</a>
+              <a class="button button--ghost" href="#top">Voltar ao topo</a>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

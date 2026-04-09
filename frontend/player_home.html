@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Area do Jogador | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Gerencie sua ficha e acompanhe sua entrada no Capitulo I."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--player">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img
+              src="/assets/logo-bjornsson-dourado.png"
+              alt="Logo de O Reino Partido de Bjornsson"
+            />
+          </span>
+          <div>
+            <p class="eyebrow">Area do jogador</p>
+            <h1>O Reino Partido de Bjornsson</h1>
+          </div>
+        </a>
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessao</button>
+        </form>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <main class="player-layout">
+        <section class="player-panel">
+          <p class="eyebrow">Personagem atual</p>
+          <h2>{{ character.name }}</h2>
+          <p class="player-panel__lead">
+            {% if character.class_name %}
+            Seu personagem ja entrou no Capitulo I. Continue a jornada em Elandoria, acompanhe a ficha e revise os ganhos do capitulo.
+            {% elif character.onboarding_step == "race" %}
+            Sua ficha base foi criada. Agora escolha a raca do personagem.
+            {% elif character.onboarding_step == "stats" %}
+            A raca foi definida. O proximo passo e rolar todos os status antes da classe.
+            {% else %}
+            A base do personagem esta pronta. O proximo passo e definir a classe.
+            {% endif %}
+          </p>
+
+          <div class="player-grid player-grid--four">
+            <article class="player-card">
+              <p class="player-card__label">Identidade</p>
+              <ul class="player-card__list">
+                <li><strong>Nome:</strong> {{ character.name }}</li>
+                <li><strong>Idade:</strong> {{ character.age }}</li>
+              </ul>
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Status</p>
+              {% if character.onboarding_step == "stats" %}
+              <div class="status-card__empty">
+                <strong>Status pendentes</strong>
+                <p>Abra o modal e role todos os atributos em sequencia.</p>
+              </div>
+              {% else %}
+              <div class="stat-grid">
+                {% for field_name, label in attribute_fields %}
+                <div class="stat-chip">
+                  <span>{{ label }}</span>
+                  <strong>{{ character|attr(field_name) }}</strong>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Perfil</p>
+              <ul class="player-card__list">
+                <li><strong>Personalidade:</strong> {{ character.personality or "Nao definida" }}</li>
+                <li><strong>Objetivo:</strong> {{ character.objective or "Nao definido" }}</li>
+                <li><strong>Medo/Fraqueza:</strong> {{ character.fear or "Nao definido" }}</li>
+              </ul>
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Proximas etapas</p>
+              <ul class="player-card__list">
+                <li><strong>Raca:</strong> {{ character.race_name or "Pendente" }}</li>
+                {% if character.race_status == "inferior" %}
+                <li>
+                  <strong>Condicao racial:</strong> Versao inferior. Ainda precisara
+                  provar seu valor para atingir a forma completa.
+                </li>
+                {% endif %}
+                <li><strong>Classe:</strong> {{ character.class_name or "Pendente" }}</li>
+                <li><strong>Status:</strong> {{ character.onboarding_step }}</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="hero__actions">
+            {% if character.class_name %}
+            <a class="button button--primary" href="/jogo">Continuar capitulo</a>
+            <a class="button button--ghost" href="/jogador/ficha-completa">Ver ficha impressa</a>
+            {% elif character.onboarding_step == "race" %}
+              {% if character.race_slug in ["anjo", "demonio"] %}
+              <button class="button button--ghost button--disabled" type="button" disabled>
+                Raca bloqueada apos arriscar a sorte
+              </button>
+              {% else %}
+              <a class="button button--primary" href="/jogador/raca">
+                {% if character.race_name %}Trocar raca{% else %}Escolher raca{% endif %}
+              </a>
+              {% endif %}
+            {% elif character.onboarding_step == "stats" %}
+            <button class="button button--primary js-status-modal-open" type="button">
+              Rolar status
+            </button>
+            {% if character.race_slug not in ["anjo", "demonio"] %}
+            <a class="button button--ghost" href="/jogador/raca">Trocar raca</a>
+            {% endif %}
+            {% else %}
+            <a class="button button--primary" href="/jogador/classe">Escolher classe</a>
+            {% endif %}
+
+            {% if not character.class_name %}
+            <form action="/jogador/resetar-criacao" method="post">
+              <button class="button button--ghost" type="submit">Resetar ficha</button>
+            </form>
+            {% endif %}
+            <a class="button button--ghost" href="/">Voltar para a home</a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    {% if character.onboarding_step == "stats" %}
+    <div class="race-modal" id="status-modal" hidden>
+      <div class="race-modal__backdrop"></div>
+      <div class="race-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
+        <p class="eyebrow">Rolagem de status</p>
+        <h2 id="status-modal-title" class="race-modal__title">Os atributos do personagem estao sendo revelados.</h2>
+        <p class="race-modal__text" id="status-modal-description">
+          O modal so sera encerrado depois que todos os status forem rolados.
+        </p>
+        <div class="race-modal__meta">
+          <span class="race-modal__threshold" id="status-modal-progress">0/7 rolados</span>
+          <span class="race-modal__status" id="status-modal-current">Proximo: FOR</span>
+        </div>
+        <div class="race-modal__stage">
+          <div class="race-modal__pulse"></div>
+          <div class="race-modal__dice-shell">
+            <div class="race-modal__dice" id="status-modal-dice">?</div>
+          </div>
+        </div>
+        <p class="race-modal__result" id="status-modal-result"></p>
+        <div class="status-roll-grid">
+          {% for field_name, label in attribute_fields %}
+          {% set pending_value = pending_status_rolls.get(field_name) %}
+          <div class="stat-chip status-roll-chip {% if pending_value %}is-done{% endif %}" data-status-chip="{{ field_name }}">
+            <span>{{ label }}</span>
+            <strong>{{ pending_value if pending_value else "?" }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="hero__actions">
+          <button class="button button--primary" id="status-modal-roll" type="button">
+            Rolar
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <script src="/script.js"></script>
+  </body>
+</html>

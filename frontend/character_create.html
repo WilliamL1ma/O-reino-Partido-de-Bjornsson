@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar Ficha | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Crie a ficha base do seu personagem antes de escolher raca, status e classe."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--login">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img
+              src="/assets/logo-bjornsson-dourado.png"
+              alt="Logo de O Reino Partido de Bjornsson"
+            />
+          </span>
+          <div>
+            <p class="eyebrow">Primeiro acesso</p>
+            <h1>Criacao da ficha</h1>
+          </div>
+        </a>
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessao</button>
+        </form>
+      </header>
+
+      <main class="login-layout">
+        <section class="login-panel reveal is-visible">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="flash-stack flash-stack--compact">
+            {% for category, message in messages %}
+            <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          <p class="eyebrow">Ficha base do personagem</p>
+          <h2>Defina a identidade. Os status serao rolados depois da escolha de raca.</h2>
+          <p class="login-panel__lead">
+            O fluxo agora segue em tres etapas: ficha base, escolha de raca e
+            rolagem completa dos status antes da classe.
+          </p>
+
+          <div class="hero__actions">
+            <form action="/jogador/resetar-criacao" method="post">
+              <button class="button button--ghost" type="submit">Resetar ficha</button>
+            </form>
+          </div>
+
+          <form class="login-form" action="/jogador/ficha" method="post">
+            <label class="input-group">
+              <span>Nome do personagem</span>
+              <input type="text" name="name" placeholder="Ex.: Kaelin" required />
+            </label>
+
+            <label class="input-group">
+              <span>Idade</span>
+              <input type="number" name="age" min="10" max="120" placeholder="16" required />
+            </label>
+
+            <label class="input-group">
+              <span>Personalidade</span>
+              <textarea
+                name="personality"
+                rows="3"
+                placeholder="Ex.: Timido, recluso, observador."
+              ></textarea>
+            </label>
+
+            <label class="input-group">
+              <span>Objetivo</span>
+              <textarea
+                name="objective"
+                rows="3"
+                placeholder="Ex.: Superar seus medos e se provar digno."
+              ></textarea>
+            </label>
+
+            <label class="input-group">
+              <span>Medo ou fraqueza</span>
+              <textarea
+                name="fear"
+                rows="3"
+                placeholder="Ex.: Dificuldade em confiar nas pessoas."
+              ></textarea>
+            </label>
+
+            <button class="button button--primary login-form__submit" type="submit">
+              Criar ficha
+            </button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

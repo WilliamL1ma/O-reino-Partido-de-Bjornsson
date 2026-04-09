@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escolher Classe | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Escolha a classe do personagem com base nos status finais."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--player">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img src="/assets/logo-bjornsson-dourado.png" alt="Logo de O Reino Partido de Bjornsson" />
+          </span>
+          <div>
+            <p class="eyebrow">Onboarding do personagem</p>
+            <h1>Escolha de classe</h1>
+          </div>
+        </a>
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessao</button>
+        </form>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <main class="player-layout">
+        <section class="player-panel">
+          <p class="eyebrow">Etapa 4</p>
+          <h2>{{ character.name }}</h2>
+          <p class="player-panel__lead">
+            Os status ja foram definidos. Escolha a classe final do personagem.
+          </p>
+
+          <div class="race-grid">
+            {% for class_item in classes %}
+            <article class="race-card race-card--flip js-class-card">
+              <div class="race-card__inner">
+                <div class="race-card__face race-card__face--front">
+                  <div class="race-card__head">
+                    <p class="race-card__title">{{ class_item.name }}</p>
+                    {% if class_item.levels %}
+                    <button
+                      class="race-card__info js-class-info"
+                      type="button"
+                      aria-expanded="false"
+                    >
+                      !
+                    </button>
+                    {% endif %}
+                  </div>
+                  <p class="race-card__summary">{{ class_item.summary }}</p>
+                  {% if class_item.requirements %}
+                  <p class="race-card__requirement">
+                    {% if class_item.allowed %}
+                    Requisitos atendidos.
+                    {% else %}
+                    Faltando: {{ class_item.missing|join(", ") }}
+                    {% endif %}
+                  </p>
+                  {% endif %}
+                  <form action="/jogador/classe" method="post">
+                    <input type="hidden" name="class" value="{{ class_item.slug }}" />
+                    <button class="button {% if class_item.allowed %}button--primary{% else %}button--ghost button--disabled{% endif %} race-card__button" type="submit" {% if not class_item.allowed %}disabled{% endif %}>
+                      {% if class_item.allowed %}Escolher {{ class_item.name }}{% else %}Bloqueada{% endif %}
+                    </button>
+                  </form>
+                </div>
+
+                <div class="race-card__face race-card__face--back">
+                  <div class="race-card__head">
+                    <p class="race-card__title">{{ class_item.name }}</p>
+                    <button class="race-card__info js-class-info" type="button" aria-expanded="true">
+                      x
+                    </button>
+                  </div>
+                  <div class="class-levels">
+                    {% for level in class_item.levels %}
+                    <div class="class-levels__item">
+                      <strong>{{ loop.index }}. {{ level.title }}</strong>
+                      <span>{{ level.requirement }}</span>
+                      <small>{{ level.reward }}</small>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

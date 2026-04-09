@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elandoria | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Aventura conversacional guiada em Elandoria, com mestre narrativo, rolagens e descobertas."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--player">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img src="/assets/logo-bjornsson-dourado.png" alt="Logo de O Reino Partido de Bjornsson" />
+          </span>
+          <div>
+            <p class="eyebrow">Elandoria</p>
+            <h1>Jornada Guiada</h1>
+          </div>
+        </a>
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessao</button>
+        </form>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+        <div class="flash-message flash-message--{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <main class="game-layout">
+        <section class="player-panel game-panel">
+          <p class="eyebrow">{{ scene.eyebrow }}</p>
+          <h2>Mestre de Elandoria</h2>
+          <p class="player-panel__lead">
+            O mestre conduz a jornada no presente de Elandoria. Ele descreve a situacao, oferece caminhos possiveis e aciona rolagens quando a cena exigir.
+          </p>
+
+          {% if scene.type == "complete" %}
+          <div class="game-scene-context">
+            <p>O primeiro capitulo foi concluido, e eu me reverencio diante de voce com gratidao sincera.</p>
+            <p>Obrigado por dedicar seu tempo ao meu jogo. Espero que a jornada por Elandoria tenha tocado sua memoria, sua curiosidade e seu coracao.</p>
+          </div>
+          {% endif %}
+
+          {% if pending_event %}
+          <div class="game-event-banner">
+            <strong>Rolagem pendente:</strong>
+            {% if pending_event.type == "encounter" and pending_event.monster_name %}
+            <span>{{ pending_event.monster_name }} surgiu no caminho. {{ pending_event.stakes }}</span>
+            {% else %}
+            {{ pending_event.stakes }}
+            {% endif %}
+            <button
+              class="button button--primary js-open-roll-modal"
+              type="button"
+              data-event-type="{{ pending_event.type }}"
+              data-roll-type="{{ pending_event.roll_type }}"
+              data-attribute="{{ pending_event.attribute }}"
+              data-label="{{ pending_event.label }}"
+              data-difficulty="{{ pending_event.difficulty }}"
+              data-stakes="{{ pending_event.stakes }}"
+              data-monster-name="{{ pending_event.monster_name or '' }}"
+            >
+              Rolar d20 agora
+            </button>
+          </div>
+          {% endif %}
+          <article class="player-card game-chat game-chat--main">
+            <div class="game-chat__head">
+              <div>
+                <p class="player-card__label">Mestre narrativo</p>
+                <p class="game-chat__status">
+                  {% if groq_enabled %}
+                  Groq ativa
+                  {% else %}
+                  Groq desativada
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+
+            <div class="game-chat__messages" id="game-chat-messages">
+              {% if recent_messages %}
+                {% for message in recent_messages %}
+                <article class="game-chat__message game-chat__message--{{ message.role }}">
+                  <strong>{% if message.role == "gm" %}Mestre{% else %}Voce{% endif %}</strong>
+                  <p>{{ message.content }}</p>
+                </article>
+                {% endfor %}
+              {% else %}
+              <article class="game-chat__message game-chat__message--gm">
+                <strong>Mestre</strong>
+                <p>{{ scene.lead }}</p>
+              </article>
+              <article class="game-chat__message game-chat__message--gm">
+                <strong>Mestre</strong>
+                <p>Fale comigo sobre o que voce quer fazer.</p>
+              </article>
+              {% endif %}
+            </div>
+
+            <form class="game-chat__form" id="game-chat-form">
+              <textarea
+                id="game-chat-input"
+                name="message"
+                placeholder="Ex.: Eu examino as marcas da pedra e tento entender quem passou por aqui antes de mim."
+                {% if not groq_enabled or pending_event %}disabled{% endif %}
+              ></textarea>
+              <button class="button button--primary" id="game-chat-submit" type="submit" {% if not groq_enabled or pending_event %}disabled{% endif %}>
+                Falar com o mestre
+              </button>
+            </form>
+          </article>
+
+          <article class="player-card game-chat__suggestions-text" id="game-suggestions-panel" {% if pending_event %}hidden{% endif %}>
+            <p><strong>Sugestoes do mestre</strong></p>
+            <ol id="game-suggestions-list">
+              {% if pending_event %}
+              <li>As sugestoes ficam disponiveis novamente depois que a rolagem pendente for resolvida.</li>
+              {% elif suggested_actions %}
+                {% for action in suggested_actions[:5] %}
+                <li>{{ action }}</li>
+                {% endfor %}
+              {% else %}
+              <li>As proximas opcoes aparecerao aqui quando o mestre sugerir caminhos.</li>
+              {% endif %}
+            </ol>
+          </article>
+
+          {% if scene.type == "complete" %}
+          <div class="player-grid player-grid--four game-rewards-grid">
+            {% for reward in rewards %}
+            <article class="player-card">
+              <p class="player-card__label">{{ reward.tag }}</p>
+              <h3 class="game-reward__title">{{ reward.name }}</h3>
+              <p class="game-choice-card__summary">{{ reward.description }}</p>
+            </article>
+            {% endfor %}
+          </div>
+          <div class="hero__actions">
+            <a class="button button--primary" href="/jogador/ficha-completa">Ver ficha impressa</a>
+            <a class="button button--ghost" href="/jogador">Voltar para a area do jogador</a>
+          </div>
+          {% endif %}
+        </section>
+
+        <aside class="game-sidebar">
+          <article class="player-card">
+            <p class="player-card__label">Personagem</p>
+            <ul class="player-card__list">
+              <li><strong>Nome:</strong> {{ character.name }}</li>
+              <li><strong>Raca:</strong> {{ character.race_name }}</li>
+              <li><strong>Classe:</strong> {{ character.class_name }}</li>
+              <li><strong>Ato atual:</strong> {{ character.story_act }}</li>
+            </ul>
+          </article>
+
+          <article class="player-card">
+            <p class="player-card__label">Progresso</p>
+            <ul class="player-card__list">
+              <li><strong>XP:</strong> {{ character.experience }}</li>
+              <li><strong>Ouro:</strong> {{ character.gold }}</li>
+              <li><strong>Marco do capitulo:</strong> {{ scene.title }}</li>
+            </ul>
+            <div class="hero__actions">
+              <form action="/jogo/resetar-campanha" method="post">
+                <button class="button button--ghost" type="submit">Resetar campanha</button>
+              </form>
+            </div>
+          </article>
+
+          <article class="player-card">
+            <p class="player-card__label">Status</p>
+            <div class="stat-grid stat-grid--compact">
+              {% for field_name, label in attribute_fields %}
+              <div class="stat-chip">
+                <span>{{ label }}</span>
+                <strong>{{ character|attr(field_name) }}</strong>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="player-card">
+            <p class="player-card__label">Inventario do capitulo</p>
+            <ul class="player-card__list">
+              {% if inventory %}
+                {% for item in inventory[-8:] %}
+                <li>
+                  <strong>{{ item.name }}</strong>
+                  {% if item.value %}<span>({{ item.value }} ouro)</span>{% endif %}
+                </li>
+                {% endfor %}
+              {% else %}
+              <li>Nenhum item coletado ainda.</li>
+              {% endif %}
+            </ul>
+          </article>
+
+          {% if recent_reward %}
+          <article class="player-card">
+            <p class="player-card__label">Ultimo saque</p>
+            <ul class="player-card__list">
+              <li><strong>Monstro:</strong> {{ recent_reward.monster_name }}</li>
+              <li><strong>XP:</strong> {{ recent_reward.xp_gain }}</li>
+              <li><strong>Ouro:</strong> {{ recent_reward.gold_gain }}</li>
+              <li>
+                <strong>Drops:</strong>
+                {% if recent_reward.loot_names %}
+                {{ recent_reward.loot_names|join(", ") }}
+                {% else %}
+                Nenhum item raro
+                {% endif %}
+              </li>
+            </ul>
+          </article>
+          {% endif %}
+
+        </aside>
+      </main>
+    </div>
+
+    <div class="race-modal" id="game-roll-modal" hidden>
+      <div class="race-modal__backdrop"></div>
+      <div class="race-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="game-roll-title">
+        <p class="eyebrow">Rolagem do mestre</p>
+        <h2 id="game-roll-title" class="race-modal__title">A situacao exige um d20.</h2>
+        <p class="race-modal__text" id="game-roll-stakes">Resolva o evento pendente para a aventura continuar.</p>
+        <div class="race-modal__meta">
+          <span class="race-modal__threshold" id="game-roll-attribute">ATRIBUTO</span>
+          <span class="race-modal__status" id="game-roll-difficulty">CD 12</span>
+        </div>
+        <div class="race-modal__stage">
+          <div class="race-modal__pulse"></div>
+          <div class="race-modal__dice-shell">
+            <div class="race-modal__dice" id="game-roll-dice">?</div>
+          </div>
+        </div>
+        <p class="race-modal__result" id="game-roll-result"></p>
+        <div class="hero__actions">
+          <button class="button button--primary" id="game-roll-button" type="button">Rolar d20</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

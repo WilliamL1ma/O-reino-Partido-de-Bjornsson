@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ficha Completa | O Reino Partido de Bjornsson</title>
+    <meta
+      name="description"
+      content="Veja a ficha final completa do personagem."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/assets/favicon-bjornsson.png" />
+    <link rel="apple-touch-icon" href="/assets/favicon-bjornsson.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell page-shell--player">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-mark__crest">
+            <img src="/assets/logo-bjornsson-dourado.png" alt="Logo de O Reino Partido de Bjornsson" />
+          </span>
+          <div>
+            <p class="eyebrow">Ficha completa</p>
+            <h1>Estado final do personagem</h1>
+          </div>
+        </a>
+        <form action="/logout" method="post">
+          <button class="topbar__cta" type="submit">Sair da sessao</button>
+        </form>
+      </header>
+
+      <main class="player-layout">
+        <section class="player-panel">
+          <p class="eyebrow">Ficha impressa</p>
+          <h2>{{ character.name }}</h2>
+          <p class="player-panel__lead">
+            O personagem esta pronto com raca, classe e status finais definidos.
+          </p>
+
+          <div class="player-grid player-grid--four">
+            <article class="player-card">
+              <p class="player-card__label">Identidade</p>
+              <ul class="player-card__list">
+                <li><strong>Nome:</strong> {{ character.name }}</li>
+                <li><strong>Idade:</strong> {{ character.age }}</li>
+                <li><strong>Raca:</strong> {{ character.race_name }}</li>
+                <li><strong>Classe:</strong> {{ character.class_name }}</li>
+              </ul>
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Status</p>
+              <div class="stat-grid">
+                {% for field_name, label in attribute_fields %}
+                <div class="stat-chip">
+                  <span>{{ label }}</span>
+                  <strong>{{ character|attr(field_name) }}</strong>
+                </div>
+                {% endfor %}
+              </div>
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Perfil</p>
+              <ul class="player-card__list">
+                <li><strong>Personalidade:</strong> {{ character.personality or "Nao definida" }}</li>
+                <li><strong>Objetivo:</strong> {{ character.objective or "Nao definido" }}</li>
+                <li><strong>Medo/Fraqueza:</strong> {{ character.fear or "Nao definido" }}</li>
+              </ul>
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Estado</p>
+              <ul class="player-card__list">
+                <li><strong>Condicao racial:</strong> {{ character.race_status or "full" }}</li>
+                <li><strong>Etapa:</strong> {{ character.onboarding_step }}</li>
+                <li><strong>XP:</strong> {{ character.experience }}</li>
+                <li><strong>Ouro:</strong> {{ character.gold }}</li>
+                <li><strong>Ato atual:</strong> {{ character.story_act }}</li>
+              </ul>
+            </article>
+
+            <article class="player-card">
+              <p class="player-card__label">Inventario do capitulo</p>
+              <ul class="player-card__list">
+                {% if inventory %}
+                  {% for item in inventory[-8:] %}
+                  <li>
+                    <strong>{{ item.name }}</strong>
+                    {% if item.value %}<span>({{ item.value }} ouro)</span>{% endif %}
+                  </li>
+                  {% endfor %}
+                {% else %}
+                <li>Nenhum item registrado ainda.</li>
+                {% endif %}
+              </ul>
+            </article>
+          </div>
+
+          <div class="hero__actions">
+            <a class="button button--primary" href="/jogo">Continuar capitulo</a>
+            <a class="button button--ghost" href="/jogador">Voltar para a area do jogador</a>
+            <a class="button button--ghost" href="/">Voltar para a home</a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

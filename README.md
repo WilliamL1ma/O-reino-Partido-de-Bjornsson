@@ -100,15 +100,43 @@ O objetivo técnico do projeto é combinar uma campanha estruturada com liberdad
 
 Esta seção mostra o fluxo do produto do ponto de vista do jogador: apresentação do reino, acesso, criação de personagem, onboarding de RPG e gameplay com o Mestre de Elandoria.
 
+### Mapa Resumido Do Fluxo Visual
+
+```mermaid
+flowchart LR
+    A[Landing /] --> B[Login ou Registro]
+    B --> C[Criação da ficha]
+    C --> D[Seleção de raça]
+    D --> E{Raça especial?}
+    E -- Sim --> F[Rolagem d20 especial]
+    E -- Não --> G[Rolagem de atributos]
+    F --> G
+    G --> H[Validação de classes]
+    H --> I[Escolha de classe]
+    I --> J[Tela /jogo]
+    J --> K[Mestre narrativo]
+    K --> L{Evento mecânico?}
+    L -- Sim --> M[Rolagem pendente]
+    L -- Não --> N[Sugestões e próxima ação]
+    M --> K
+    N --> K
+```
+
+Esse fluxo visual acompanha a mesma cadeia do backend: autenticação cria a sessão do usuário, ficha e escolhas atualizam o registro do personagem, atributos liberam classes, e a tela de jogo passa a puxar cena, estado narrativo, mensagens, inventário, recompensas e sugestões do mestre.
+
 ### Apresentação Do Reino
 
 A tela inicial apresenta o tom da campanha, o mapa de fundo e a entrada para o primeiro capítulo.
 
 ![Tela inicial do Reino Partido de Bjornsson](docs/screenshots/landing-overview.png)
 
+**Fluxo:** a landing page é a porta pública do projeto. Ela não depende de personagem criado; serve para apresentar o universo e direcionar o jogador para login, registro ou abertura narrativa.
+
 A página de introdução do capítulo explica o contexto da origem de Elandoria antes do jogador entrar na campanha.
 
 ![Visão geral do primeiro capítulo](docs/screenshots/chapter-one-overview.png)
+
+**Fluxo:** essa tela contextualiza o Capítulo I antes do gameplay. Ela puxa texto estático do frontend e prepara o jogador para entrar no fluxo autenticado, onde o backend passa a controlar ficha, progresso e sessão.
 
 ### Acesso Do Jogador
 
@@ -116,7 +144,11 @@ O jogador pode criar uma conta ou entrar com uma conta existente antes de inicia
 
 ![Tela de login](docs/screenshots/login-page.png)
 
+**Fluxo:** o login valida e-mail e senha, cria a sessão Flask e permite que as rotas protegidas identifiquem o usuário atual. Depois disso, o backend decide se o jogador ainda precisa criar ficha ou se já pode seguir para a área do jogador.
+
 ![Tela de criação de conta](docs/screenshots/register-page.png)
+
+**Fluxo:** o registro cria o usuário no PostgreSQL com senha protegida por bcrypt. Esse usuário passa a ser a raiz dos personagens e mensagens persistidas durante a campanha.
 
 ### Criação Do Personagem
 
@@ -124,17 +156,27 @@ A ficha começa com dados narrativos: nome, idade, personalidade, objetivo e med
 
 ![Formulário de criação de personagem](docs/screenshots/character-creation-form.png)
 
+**Fluxo:** essa etapa cria ou atualiza o personagem associado ao usuário. Nome, personalidade, objetivo e medo entram depois no `character_state`, que é enviado ao mestre narrativo para personalizar a cena.
+
 Depois da ficha base, o jogador escolhe a raça. Algumas raças são comuns e podem ser escolhidas diretamente.
 
 ![Seleção principal de raças](docs/screenshots/race-selection-primary.png)
+
+**Fluxo:** a tela de raça lê o catálogo de raças do jogo e grava a escolha no personagem. Raças comuns avançam direto para a rolagem de atributos.
 
 Raças especiais, como Anjo e Demônio, exigem uma rolagem de d20 antes de serem liberadas.
 
 ![Raças especiais na seleção de raça](docs/screenshots/race-selection-special.png)
 
+**Fluxo:** ao tentar uma raça especial, o frontend chama a rota de rolagem de raça. O backend calcula o d20, compara com a dificuldade da raça e só persiste a escolha se o resultado for suficiente.
+
 ![Rolagem especial para Anjo](docs/screenshots/special-race-angel-roll.png)
 
+**Fluxo:** Anjo exige resultado `15+` no d20. Se falhar, o personagem não recebe essa raça e precisa escolher outra opção.
+
 ![Rolagem especial para Demônio](docs/screenshots/special-race-demon-roll.png)
+
+**Fluxo:** Demônio exige resultado `16+` no d20. A lógica é a mesma: o dado decide se a raça pode ser persistida no personagem.
 
 ### Atributos E Classe
 
@@ -142,13 +184,21 @@ Após escolher a raça, o jogador rola os atributos do personagem. O sistema rev
 
 ![Página de rolagem de atributos](docs/screenshots/attribute-roll-status-page.png)
 
+**Fluxo:** a página de status só é liberada depois da raça. Ela consulta quais atributos ainda estão pendentes e prepara o modal para rolar `FOR`, `DEX`, `CON`, `INT`, `SAB`, `CAR` e `PER`.
+
 ![Modal de rolagem dos atributos](docs/screenshots/attribute-roll-modal.png)
+
+**Fluxo:** cada rolagem atualiza um atributo no personagem. Quando os 7 atributos existem, o backend libera a próxima etapa: seleção de classe.
 
 A seleção de classe mostra requisitos atendidos e bloqueios. Isso deixa claro por que uma classe está ou não disponível.
 
 ![Classes bloqueadas por requisitos](docs/screenshots/class-selection-locked.png)
 
+**Fluxo:** a tela de classe compara os atributos persistidos com os requisitos do catálogo. Classes sem requisito atendido aparecem bloqueadas e informam o atributo faltante.
+
 ![Classes disponíveis após validação de atributos](docs/screenshots/class-selection-available.png)
+
+**Fluxo:** quando uma classe tem requisitos atendidos, o botão de escolha fica disponível. Ao confirmar, o backend grava a classe no personagem e libera a entrada em `/jogo`.
 
 ### Gameplay
 
@@ -156,9 +206,13 @@ A tela principal reúne a narração do mestre, o momento atual, dados do person
 
 ![Tela principal de gameplay com mestre narrativo](docs/screenshots/gameplay-master-overview.png)
 
+**Fluxo:** `/jogo` carrega o personagem, inicializa a campanha se necessário, puxa a cena atual, mensagens recentes, resumo de memória, evento pendente, recompensa recente, inventário e ações sugeridas. Esse conjunto monta o snapshot exibido no frontend.
+
 As sugestões do mestre aparecem como opções contextuais, mas o jogador também pode escrever uma ação livre.
 
 ![Sugestões de ações do mestre](docs/screenshots/gameplay-suggested-actions.png)
+
+**Fluxo:** as sugestões vêm do estado persistido ou são montadas por fallback local. Com Groq configurado, o grafo pode gerar sugestões contextuais; sem Groq, o backend usa ações padrão da cena. Quando há rolagem pendente, as sugestões são bloqueadas para forçar a resolução do dado.
 
 ## Fluxo Do Jogador
 
@@ -300,6 +354,22 @@ flowchart LR
     Q --> S
 ```
 
+**Leitura do diagrama, do início ao fim:**
+
+1. O fluxo começa em `prepare_state`. Esse nó recebe o estado bruto montado pelos serviços narrativos e normaliza tudo que o grafo precisa: modo da execução, cena atual, cenas permitidas, monstros disponíveis, personagem, inventário, mensagens recentes, evento pendente, recompensa recente, autoridade narrativa e ações fallback.
+2. Depois o grafo chama `mechanics`. Esse estágio olha principalmente para a mensagem do jogador e decide se existe um evento mecânico imediato, como teste de atributo ou encontro. Ele não narra a cena; só detecta se há algo que precisa de dado.
+3. Em seguida vem `narrative_generate`. Esse nó usa a cena, o lore, o personagem, a mensagem do jogador e o possível evento mecânico para gerar a narração do mestre. Se a geração falhar, o grafo desvia direto para `narrative_fallback`.
+4. Se a narração foi gerada, ela passa por `narrative_review`. A revisão verifica se o texto está vazio, se vazou JSON ou termo técnico, se parece recusa do modelo, se quebrou continuidade, se trouxe anacronismo ou se narrou algo fisicamente incoerente.
+5. Quando a revisão reprova, o grafo tenta `narrative_revise` uma vez. Essa revisão pede para a IA corrigir apenas o problema encontrado. Se ainda não ficar válido, o fluxo cai em `narrative_fallback`, que monta uma resposta local segura.
+6. Quando a narração é aprovada, `narrative_approved` congela a narração final e guarda também `next_scene` ou `story_event`, se existirem.
+7. Depois da narração, o grafo decide se pode gerar sugestões. Se houver evento mecânico ou `story_event`, ele vai para `suggestions_blocked`, porque o jogador precisa resolver o evento antes de receber novas opções.
+8. Se não houver bloqueio, o grafo chama `suggestions_generate`. Esse nó gera de 2 a 5 ações possíveis para o momento atual.
+9. As sugestões passam por `suggestions_review`. A revisão checa quantidade, idioma, coerência com a narração, aderência ao estado autoritativo e se as ações não ficaram genéricas demais.
+10. Se as sugestões forem ruins, o grafo tenta `suggestions_revise` uma vez. Se ainda falhar, usa `suggestions_fallback`, que monta ações locais baseadas na cena e no estado permitido.
+11. O fluxo termina em `finalize`. Esse nó consolida o que será devolvido ao resto do backend: narração final, evento mecânico, próxima cena, story event, sugestões aprovadas e diagnósticos do pipeline.
+
+Na prática, o grafo funciona como uma esteira de controle de qualidade. A IA pode gerar texto e sugestões, mas cada saída passa por parser, revisão, limite de tentativa e fallback antes de chegar ao jogador.
+
 ### Regras Importantes Do Grafo
 
 - O grafo sempre começa normalizando o estado.
@@ -411,6 +481,19 @@ flowchart LR
     F --> E
 ```
 
+**Leitura do diagrama, do início ao fim:**
+
+1. O jogador interage com páginas HTML, CSS e JavaScript no frontend. O frontend não decide regra de campanha sozinho; ele mostra formulários, botões, modais, mensagens e envia requisições para o backend.
+2. O Flask recebe essas requisições e direciona cada uma para um blueprint. Os blueprints separam os domínios principais: autenticação, fluxo do jogador e gameplay.
+3. As rotas de autenticação cuidam de login, registro e sessão. As rotas de jogador cuidam de ficha, raça, atributos e classe. As rotas de jogo cuidam da tela principal, conversa com o mestre, rolagens e reset de campanha.
+4. Sempre que há dado durável, o backend usa SQLAlchemy para ler ou gravar no PostgreSQL. Isso inclui usuário, personagem, atributos, cena atual, inventário, mensagens, memória e estado narrativo.
+5. Quando a rota envolve gameplay narrativo, o blueprint chama os serviços em `backend/narrative/`. Esses serviços montam o contexto da cena, carregam mensagens recentes, verificam evento pendente, buscam inventário, calculam recompensas e preparam o estado do mestre.
+6. Para respostas do mestre, os serviços narrativos chamam o `LangGraph Master Graph`. O grafo organiza a execução em etapas: mecânica, narração, revisão, sugestões, fallback e finalização.
+7. Se `GROQ_API_KEY` estiver configurada, os agentes do grafo podem chamar a Groq para interpretar ações, gerar narrações e sugerir próximos passos. Se a Groq não estiver configurada ou falhar, o backend usa fallbacks locais.
+8. O resultado volta para os serviços narrativos, que persistem o que precisa ser salvo e devolvem um snapshot para o frontend renderizar.
+
+Essa arquitetura mantém uma separação importante: o frontend mostra a experiência, o Flask organiza as rotas, o banco guarda a verdade persistida, os serviços narrativos aplicam regra de jogo, o LangGraph orquestra o mestre e a Groq entra apenas como motor opcional de linguagem.
+
 ### Fluxo De Uma Mensagem Do Jogador
 
 ```mermaid
@@ -436,6 +519,24 @@ sequenceDiagram
     B-->>F: JSON da resposta
     F-->>U: atualiza tela do jogo
 ```
+
+**Leitura do diagrama, do início ao fim:**
+
+1. O jogador está em `/jogo` e envia uma mensagem livre ou clica em uma sugestão do mestre.
+2. O JavaScript do frontend envia essa ação para `POST /jogo/mestre`.
+3. O blueprint de jogo recebe a requisição, identifica o personagem da sessão e chama `run_master_conversation`.
+4. O serviço do mestre garante que a campanha foi inicializada. Se o personagem ainda não tem cena, ele cria o estado inicial do Capítulo I.
+5. O backend carrega a cena atual, flags narrativas, inventário, evento pendente, recompensa recente, mensagens recentes e último resumo de memória.
+6. Com esses dados, `build_master_graph_state` monta o estado que será entregue ao grafo. Esse estado inclui `character_state`, `lore_packet`, `allowed_next_scenes`, `available_monsters`, `recent_messages`, `authoritative_state` e `fallback_actions`.
+7. O `LangGraph Master Graph` executa o pipeline. Primeiro normaliza o estado, depois detecta evento mecânico, gera narração, revisa a resposta, decide se pode gerar sugestões e finaliza o resultado.
+8. Se Groq estiver ativa, os agentes de mecânica, narrativa e sugestões podem chamar o modelo. Se a chamada falhar ou a resposta não passar nas validações, o grafo usa fallback local.
+9. O serviço recebe o resultado final do grafo. Se houver `story_event`, ele aplica a transição de história. Se houver evento mecânico, ele registra uma rolagem pendente e não gera novas sugestões. Se houver `next_scene`, ele persiste a nova cena.
+10. O backend salva as mensagens do jogador e do mestre, atualiza sugestões, autoridade narrativa, contexto e estado da campanha conforme necessário.
+11. Se a memória acumulada já tiver volume suficiente, o serviço pode gerar um resumo com LLM para uso nos próximos turnos.
+12. A rota devolve um JSON com mensagem do mestre, evento pendente, próxima cena, momento atual, sugestões e estado visual atualizado.
+13. O frontend recebe esse JSON e atualiza a tela sem precisar recarregar a página inteira.
+
+O ponto central desse fluxo é que a mensagem do jogador não vai direto para a IA e volta para a tela. Ela passa por estado persistido, autoridade narrativa, grafo, revisão, fallback e persistência antes de aparecer como resposta final.
 
 ### Componentes Principais
 

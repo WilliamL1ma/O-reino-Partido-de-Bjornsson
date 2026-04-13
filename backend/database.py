@@ -72,35 +72,68 @@ def _tcp_port_is_open(host: str, port: int, timeout: float = 1.0) -> bool:
         return False
 
 
-def ensure_local_postgres_container() -> None:
-    host = os.getenv("POSTGRES_HOST", "127.0.0.1")
-    port = int(os.getenv("POSTGRES_PORT", "5432"))
+def _get_database_host_and_port() -> tuple[str, int] | None:
+    url = make_url(get_database_url())
+    if not url.drivername.startswith("postgresql"):
+        return None
 
-    if not _is_local_postgres_host(host):
+    host = url.host or os.getenv("POSTGRES_HOST", "127.0.0.1")
+    port = url.port or int(os.getenv("POSTGRES_PORT", "5432"))
+    return host, port
+
+
+def _run_docker_compose(args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["docker", "compose", *args],
+        cwd=ROOT_DIR,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _compose_service_has_container(service: str) -> bool:
+    try:
+        result = _run_docker_compose(["ps", "-a", "-q", service])
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+    return bool(result.stdout.strip())
+
+
+def _start_compose_service(service: str) -> None:
+    try:
+        _run_docker_compose(["up", "-d", service])
+    except FileNotFoundError:
+        return
+    except subprocess.CalledProcessError as error:
+        stderr = error.stderr.strip()
+        stdout = error.stdout.strip()
+        details = stderr or stdout or f"Falha ao subir o container do servico {service}."
+        raise RuntimeError(details) from error
+
+
+def ensure_local_postgres_container() -> None:
+    database_endpoint = _get_database_host_and_port()
+    if database_endpoint is None:
         return
 
-    if _tcp_port_is_open(host, port):
+    host, port = database_endpoint
+    if not _is_local_postgres_host(host):
         return
 
     compose_file = ROOT_DIR / "docker-compose.yml"
     if not compose_file.exists():
         return
 
-    try:
-        subprocess.run(
-            ["docker", "compose", "up", "-d", "db"],
-            cwd=ROOT_DIR,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError:
+    if _compose_service_has_container("db"):
+        _start_compose_service("db")
         return
-    except subprocess.CalledProcessError as error:
-        stderr = error.stderr.strip()
-        stdout = error.stdout.strip()
-        details = stderr or stdout or "Falha ao subir o container do Postgres."
-        raise RuntimeError(details) from error
+
+    if _tcp_port_is_open(host, port):
+        return
+
+    _start_compose_service("db")
 
 
 def _quote_postgres_identifier(identifier: str) -> str:

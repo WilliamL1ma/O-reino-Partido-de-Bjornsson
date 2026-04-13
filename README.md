@@ -1,65 +1,194 @@
 # O Reino Partido de Bjornsson
 
-Aplicação web de RPG narrativo ambientada em Elandoria, com cadastro de jogadores, criação de personagem, persistência em PostgreSQL e um mestre conversacional opcional apoiado por Groq + LangGraph.
+Aplicação web de RPG narrativo ambientada em Elandoria. O jogador cria uma conta, monta uma ficha, escolhe raça e classe, rola atributos e joga uma campanha inicial guiada por cenas, encontros, rolagens, recompensas e estado persistido.
 
-O projeto combina:
+O projeto também possui um **Mestre de Elandoria** opcional com **Groq + LangGraph**. A IA gera narrações, interpreta ações livres e sugere próximos passos, enquanto o backend continua responsável pelas regras, estado do personagem, inventário, XP, ouro, cenas, eventos mecânicos e persistência.
 
-- backend em Flask
-- frontend server-rendered em HTML, CSS e JavaScript puro
-- banco PostgreSQL com SQLAlchemy + Alembic
-- motor narrativo com cenas, combates, puzzle e memória persistida
+Em resumo, este repositório não é apenas um chat com IA. Ele é um RPG web com fluxo estruturado, banco de dados, campanha jogável e uma camada de IA controlada por grafo, validações e fallbacks.
 
 ## Sumário
 
-- [Visão geral](#visão-geral)
-- [O que o projeto entrega](#o-que-o-projeto-entrega)
-- [Fluxo do jogador](#fluxo-do-jogador)
+- [Visão Geral](#visão-geral)
+- [O Que O Projeto Entrega](#o-que-o-projeto-entrega)
+- [Tour Visual Da Interface](#tour-visual-da-interface)
+- [Fluxo Do Jogador](#fluxo-do-jogador)
+- [Gameplay E Campanha](#gameplay-e-campanha)
+- [Como O Mestre Funciona](#como-o-mestre-funciona)
+- [Como O Grafo Narrativo Funciona](#como-o-grafo-narrativo-funciona)
+- [Como A IA É Usada](#como-a-ia-é-usada)
 - [Arquitetura](#arquitetura)
-- [Rotas principais](#rotas-principais)
-- [Estrutura do repositório](#estrutura-do-repositório)
-- [Execução local](#execução-local)
-- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Persistência E Estado](#persistência-e-estado)
+- [Rotas Principais](#rotas-principais)
+- [Estrutura Do Repositório](#estrutura-do-repositório)
+- [Execução Local](#execução-local)
+- [Variáveis De Ambiente](#variáveis-de-ambiente)
 - [Docker](#docker)
 - [Testes](#testes)
-- [Modo com e sem Groq](#modo-com-e-sem-groq)
-- [Estado atual e limitações](#estado-atual-e-limitações)
+- [Modo Com E Sem Groq](#modo-com-e-sem-groq)
+- [Estado Atual E Limitações](#estado-atual-e-limitações)
 
-## Visão geral
+## Visão Geral
 
-O jogo apresenta o universo de **O Reino Partido de Bjornsson** a partir do presente do reino de **Elandoria**. O jogador cria um personagem, escolhe raça, rola atributos, define uma classe e entra em uma jornada guiada pelo "Mestre de Elandoria".
+**O Reino Partido de Bjornsson** apresenta uma jornada de fantasia medieval no reino de **Elandoria**. O jogador passa por um onboarding completo de personagem e depois entra no Capítulo I, onde pode explorar cenas, enfrentar criaturas, resolver momentos de risco, receber recompensas e conversar com o mestre narrativo.
 
-Hoje o projeto já possui uma base funcional de produto: autenticação de usuário, onboarding completo do personagem, Capítulo I jogável, inventário/XP/ouro persistidos, chat com mestre narrativo, rolagens pendentes com consequência separada, sugestões de ações, memória resumida e testes para backend, fluxo narrativo e partes do frontend.
+O projeto já possui uma base funcional de produto:
 
-## O que o projeto entrega
+- autenticação de usuários;
+- criação completa de personagem;
+- seleção de raça e classe;
+- rolagem sequencial de atributos;
+- campanha inicial jogável;
+- estado narrativo persistido;
+- inventário, XP e ouro persistidos;
+- encontros e rolagens pendentes;
+- consequência narrativa separada da rolagem;
+- chat com mestre narrativo quando Groq está configurado;
+- sugestões de ações contextuais;
+- memória resumida da campanha;
+- testes para backend, pipeline narrativo, fluxo de cenas, rolagens e partes do frontend.
 
-- landing page pública, login e registro
-- criação de ficha com nome, idade, personalidade, objetivo e medo
-- seleção de raça, incluindo raças especiais com d20
-- rolagem sequencial de 7 atributos
-- seleção de classe com validação por requisitos
-- área do jogador e ficha completa
-- Capítulo I em Elandoria com atos, encontros e puzzle
-- drops, XP, ouro e janela de loot pós-combate
-- reset de campanha mantendo a ficha
-- migrações automáticas ao iniciar a aplicação
-- Docker Compose para app + banco
+O objetivo técnico do projeto é combinar uma campanha estruturada com liberdade narrativa. A campanha define cenas, atos, monstros, progresso e recompensas; a IA atua dentro desses limites para tornar a experiência mais conversacional.
 
-Catálogo atual do jogo: 10 raças, 12 classes, 7 atributos, 4 táticas de encontro e 11 monstros catalogados.
+## O Que O Projeto Entrega
 
-## Fluxo do jogador
+### Produto
 
-1. O usuário cria a conta em `/registro` e faz login em `/login`.
-2. A aplicação redireciona para `/jogador/ficha`.
-3. O jogador escolhe uma raça em `/jogador/raca`.
-4. `Anjo` e `Demônio` dependem de uma rolagem especial:
-   - `Anjo`: `15+`
-   - `Demônio`: `16+`
-5. O jogador rola `FOR`, `DEX`, `CON`, `INT`, `SAB`, `CAR` e `PER`.
-6. O sistema libera apenas as classes cujos requisitos foram atendidos.
-7. Depois da classe escolhida, o personagem entra em `/jogo`.
-8. A campanha alterna entre escolhas de cena, encontros, conversa livre com o mestre e atualização de inventário, XP, ouro e estado narrativo.
+- landing page pública;
+- login e registro;
+- área do jogador;
+- criação de ficha com nome, idade, personalidade, objetivo e medo;
+- seleção de raça;
+- rolagem especial para raças raras;
+- rolagem sequencial de 7 atributos;
+- seleção de classe baseada em requisitos;
+- ficha consolidada;
+- tela principal de gameplay;
+- campanha inicial em Elandoria;
+- chat narrativo com o mestre quando a IA está habilitada;
+- sugestões de ações para acelerar o fluxo do jogador;
+- reset de campanha mantendo a ficha.
 
-Resumo do Capítulo I:
+### RPG
+
+- 10 raças catalogadas;
+- 12 classes catalogadas;
+- 7 atributos;
+- 4 táticas de encontro;
+- 11 monstros catalogados;
+- Capítulo I dividido em atos;
+- encontros com criaturas;
+- puzzle e progresso narrativo;
+- drops, XP, ouro e janela de loot pós-combate;
+- item final `Cristal Incompreendido`;
+- legado final ligado a Rowan ou Freya, dependendo do perfil da classe.
+
+### Técnico
+
+- backend em Flask;
+- frontend server-rendered com HTML, CSS e JavaScript puro;
+- banco PostgreSQL;
+- ORM com SQLAlchemy;
+- migrações com Alembic;
+- senha com bcrypt;
+- Docker Compose para app + banco;
+- LangGraph para orquestração do mestre;
+- Groq como provider opcional de LLM;
+- fallbacks locais para manter a experiência jogável sem IA;
+- testes automatizados em Python e JavaScript.
+
+## Tour Visual Da Interface
+
+Esta seção mostra o fluxo do produto do ponto de vista do jogador: apresentação do reino, acesso, criação de personagem, onboarding de RPG e gameplay com o Mestre de Elandoria.
+
+### Apresentação Do Reino
+
+A tela inicial apresenta o tom da campanha, o mapa de fundo e a entrada para o primeiro capítulo.
+
+![Tela inicial do Reino Partido de Bjornsson](docs/screenshots/landing-overview.png)
+
+A página de introdução do capítulo explica o contexto da origem de Elandoria antes do jogador entrar na campanha.
+
+![Visão geral do primeiro capítulo](docs/screenshots/chapter-one-overview.png)
+
+### Acesso Do Jogador
+
+O jogador pode criar uma conta ou entrar com uma conta existente antes de iniciar a jornada.
+
+![Tela de login](docs/screenshots/login-page.png)
+
+![Tela de criação de conta](docs/screenshots/register-page.png)
+
+### Criação Do Personagem
+
+A ficha começa com dados narrativos: nome, idade, personalidade, objetivo e medo. Esses campos ajudam o mestre a contextualizar a narração durante a campanha.
+
+![Formulário de criação de personagem](docs/screenshots/character-creation-form.png)
+
+Depois da ficha base, o jogador escolhe a raça. Algumas raças são comuns e podem ser escolhidas diretamente.
+
+![Seleção principal de raças](docs/screenshots/race-selection-primary.png)
+
+Raças especiais, como Anjo e Demônio, exigem uma rolagem de d20 antes de serem liberadas.
+
+![Raças especiais na seleção de raça](docs/screenshots/race-selection-special.png)
+
+![Rolagem especial para Anjo](docs/screenshots/special-race-angel-roll.png)
+
+![Rolagem especial para Demônio](docs/screenshots/special-race-demon-roll.png)
+
+### Atributos E Classe
+
+Após escolher a raça, o jogador rola os atributos do personagem. O sistema revela os valores em sequência e usa esses resultados para validar classes disponíveis.
+
+![Página de rolagem de atributos](docs/screenshots/attribute-roll-status-page.png)
+
+![Modal de rolagem dos atributos](docs/screenshots/attribute-roll-modal.png)
+
+A seleção de classe mostra requisitos atendidos e bloqueios. Isso deixa claro por que uma classe está ou não disponível.
+
+![Classes bloqueadas por requisitos](docs/screenshots/class-selection-locked.png)
+
+![Classes disponíveis após validação de atributos](docs/screenshots/class-selection-available.png)
+
+### Gameplay
+
+A tela principal reúne a narração do mestre, o momento atual, dados do personagem, progresso, atributos, inventário e sugestões de ações.
+
+![Tela principal de gameplay com mestre narrativo](docs/screenshots/gameplay-master-overview.png)
+
+As sugestões do mestre aparecem como opções contextuais, mas o jogador também pode escrever uma ação livre.
+
+![Sugestões de ações do mestre](docs/screenshots/gameplay-suggested-actions.png)
+
+## Fluxo Do Jogador
+
+1. O usuário cria uma conta em `/registro`.
+2. O usuário faz login em `/login`.
+3. A aplicação redireciona para `/jogador/ficha`.
+4. O jogador informa nome, idade, personalidade, objetivo e medo.
+5. O jogador escolhe uma raça em `/jogador/raca`.
+6. Se escolher uma raça especial, precisa passar em uma rolagem:
+   - `Anjo`: resultado `15+`;
+   - `Demônio`: resultado `16+`.
+7. O jogador rola os 7 atributos em `/jogador/status`:
+   - `FOR`;
+   - `DEX`;
+   - `CON`;
+   - `INT`;
+   - `SAB`;
+   - `CAR`;
+   - `PER`.
+8. O sistema libera apenas as classes cujos requisitos foram atendidos.
+9. O jogador escolhe a classe em `/jogador/classe`.
+10. A ficha completa fica disponível em `/jogador/ficha-completa`.
+11. O jogador entra em `/jogo`.
+12. A campanha alterna entre cenas, escolhas, encontros, conversa livre, rolagens e recompensas.
+
+## Gameplay E Campanha
+
+O Capítulo I é uma campanha estruturada. Isso significa que a experiência não depende apenas da IA: existem cenas, atos, transições, monstros e recompensas definidos no backend.
+
+### Estrutura Do Capítulo I
 
 - **Ato 1**: `chapter_entry`, `encounter_goblin`, `encounter_robalo`
 - **Ato 2**: `act_two_crossroads`, `encounter_duende`, `encounter_cobra`, `encounter_raposa`
@@ -67,7 +196,190 @@ Resumo do Capítulo I:
 - **Ato 4**: `freya_legacy`
 - **Ato 5**: `encounter_lobisomem`, `chapter_complete`
 
-Ao concluir o capítulo, o personagem recebe o `Cristal Incompreendido` e um legado ligado a Rowan ou Freya, dependendo do perfil da classe.
+### Tipos De Interação
+
+Durante a campanha, o jogador pode:
+
+- seguir opções de cena;
+- enviar mensagens livres ao mestre;
+- investigar o ambiente;
+- iniciar ou reagir a encontros;
+- resolver rolagens pendentes;
+- receber consequências narrativas;
+- coletar recompensas;
+- avançar para novas cenas.
+
+### Rolagens Pendentes
+
+Quando uma ação exige risco mecânico, o sistema não resolve tudo em uma única resposta. O fluxo é separado:
+
+1. O jogador envia uma ação livre ou escolhe uma ação sugerida.
+2. O mestre identifica que existe um evento mecânico.
+3. O backend registra uma rolagem pendente.
+4. O frontend mostra a interface de rolagem.
+5. O jogador rola.
+6. O backend calcula o resultado.
+7. O mestre gera ou seleciona a consequência narrativa.
+8. O estado da campanha é atualizado.
+
+Esse desenho evita que a IA narre um sucesso ou fracasso antes do dado existir.
+
+## Como O Mestre Funciona
+
+O **Mestre de Elandoria** é a camada que transforma o estado do jogo em uma resposta jogável. Ele recebe o personagem, a cena atual, mensagens recentes, memória resumida, inventário, recompensas recentes, eventos pendentes e transições permitidas.
+
+O GIF abaixo demonstra esse ciclo na interface: o jogador vê a narração atual, pode seguir uma sugestão do mestre ou escrever uma ação própria, envia a mensagem e recebe uma resposta nova produzida pelo pipeline narrativo.
+
+![Demonstração do funcionamento do Mestre de Elandoria](docs/screenshots/master-interaction-demo.gif)
+
+O mestre trabalha em três modos principais:
+
+| Modo | Quando É Usado | Resultado Esperado |
+| --- | --- | --- |
+| `intro` | primeira entrada em uma cena ou início da campanha | apresentação da cena e sugestões iniciais |
+| `turn` | mensagem livre do jogador no chat | narração, possível evento mecânico, possível próxima cena e sugestões |
+| `resolution` | consequência de uma rolagem já feita | narração do resultado e atualização do momento |
+
+O mestre não recebe permissão irrestrita para alterar o jogo. O backend prepara um **estado autoritativo**, que informa o que é permitido naquele momento: tipos de ação aceitos, cena atual, próximas cenas válidas, alvo atual, evento pendente, recompensa recente e restrições de contexto.
+
+## Como O Grafo Narrativo Funciona
+
+O mestre narrativo não é uma chamada direta para a IA. Ele é um pipeline controlado por **LangGraph** em `backend/master_graph.py`.
+
+Cada nó do grafo tem uma responsabilidade pequena e previsível:
+
+| Nó | Responsabilidade |
+| --- | --- |
+| `prepare_state` | normaliza entrada, cena, inventário, mensagens recentes, estado autoritativo e ações fallback |
+| `mechanics` | decide se a ação do jogador exige rolagem, teste ou encontro |
+| `narrative_generate` | gera a narração principal do mestre |
+| `narrative_review` | valida se a narração está limpa, coerente e segura para exibir |
+| `narrative_revise` | pede uma correção para a IA quando a revisão falha |
+| `narrative_fallback` | cria uma narração local quando a IA falha ou não passa na revisão |
+| `narrative_approved` | aprova a narração final |
+| `suggestions_generate` | gera sugestões de próximas ações |
+| `suggestions_review` | valida quantidade, idioma, contexto e coerência das sugestões |
+| `suggestions_revise` | pede uma correção para sugestões inválidas |
+| `suggestions_fallback` | usa sugestões locais quando a IA falha ou gera sugestões ruins |
+| `suggestions_blocked` | bloqueia sugestões quando há rolagem ou evento obrigatório pendente |
+| `finalize` | consolida narração, evento, story event, próxima cena e sugestões |
+
+### Fluxo Do Grafo
+
+```mermaid
+flowchart LR
+    A[prepare_state] --> B[mechanics]
+    B --> C[narrative_generate]
+    C --> D{Falhou na geração narrativa?}
+    D -- Não --> E[narrative_review]
+    D -- Sim --> H[narrative_fallback]
+
+    E --> F{Narração válida?}
+    F -- Sim --> G[narrative_approved]
+    F -- Revisar --> I[narrative_revise]
+    I --> E
+    F -- Fallback --> H
+
+    G --> J{Há evento mecânico ou story_event?}
+    H --> J
+    J -- Sim --> K[suggestions_blocked]
+    J -- Não --> L[suggestions_generate]
+
+    L --> M{Falhou ao gerar sugestões?}
+    M -- Não --> N[suggestions_review]
+    M -- Sim --> Q[suggestions_fallback]
+
+    N --> O{Sugestões válidas?}
+    O -- Sim --> P[suggestions_approved]
+    O -- Revisar --> R[suggestions_revise]
+    R --> N
+    O -- Fallback --> Q
+
+    K --> S[finalize]
+    P --> S
+    Q --> S
+```
+
+### Regras Importantes Do Grafo
+
+- O grafo sempre começa normalizando o estado.
+- A detecção mecânica acontece antes da narração.
+- A narração pode ser revisada uma vez antes de cair em fallback.
+- Sugestões só são geradas quando não existe evento obrigatório pendente.
+- Sugestões também podem ser revisadas uma vez antes de fallback.
+- O frontend recebe apenas o resultado consolidado em `finalize`.
+- A execução registra `execution_trace` e `pipeline_diagnostics`, úteis para testes e depuração.
+
+## Como A IA É Usada
+
+A IA é opcional e depende de `GROQ_API_KEY`. Quando habilitada, ela é usada em pontos específicos, sempre mediada pelo backend.
+
+### Agentes Do Pipeline
+
+| Agente | Arquivo | Papel |
+| --- | --- | --- |
+| `MechanicsAgent` | `backend/master_pipeline/mechanics_agent.py` | identifica se a intenção do jogador exige evento mecânico |
+| `NarrativeAgent` | `backend/master_pipeline/narrative_agent.py` | gera ou revisa a narração principal |
+| `SuggestionAgent` | `backend/master_pipeline/suggestion_agent.py` | gera ou revisa sugestões de próximas ações |
+
+### O Que A IA Pode Fazer
+
+- interpretar a intenção livre do jogador;
+- sugerir um teste de atributo ou encontro quando fizer sentido;
+- escrever a narração do mestre;
+- adaptar a cena ao personagem e ao histórico recente;
+- gerar falas e atmosfera medieval;
+- sugerir próximas ações contextuais;
+- revisar narrações e sugestões inválidas;
+- resumir memória da campanha depois de várias mensagens.
+
+### O Que A IA Não Deve Controlar Diretamente
+
+- XP;
+- ouro;
+- dano;
+- inventário;
+- drops;
+- recompensas;
+- migrações de banco;
+- autenticação;
+- classe ou raça do personagem;
+- regras de desbloqueio de classe;
+- aplicação final de eventos de história;
+- persistência do estado.
+
+Essas responsabilidades ficam no backend. A IA devolve texto ou JSON estruturado; o sistema faz parse, valida, sanitiza e decide o que realmente entra no estado do jogo.
+
+### Validações E Proteções
+
+O pipeline revisa e limpa saídas da IA para evitar:
+
+- JSON aparecendo para o jogador;
+- termos técnicos como `next_scene` ou `story_event` vazando na narração;
+- narração inteira entre aspas;
+- recusa do modelo no lugar de continuação da cena;
+- troca incoerente da entidade em foco;
+- quebra de causalidade física;
+- anacronismos como telefone, carro, motor, plástico ou arma moderna;
+- sugestões genéricas demais;
+- sugestões em inglês;
+- sugestões que contradizem a narração;
+- sugestões fora das ações permitidas pelo estado autoritativo.
+
+### Memória Da Campanha
+
+As mensagens do jogador e do mestre são persistidas no banco. Quando o histórico cresce, o serviço de memória pode chamar a IA para gerar um resumo curto com fatos duradouros:
+
+- decisões importantes;
+- estilo do jogador;
+- interesses;
+- desconfianças;
+- alianças;
+- itens narrativos;
+- pistas;
+- tom emocional da campanha.
+
+Esse resumo entra nos próximos prompts para manter continuidade sem enviar todo o histórico ao modelo.
 
 ## Arquitetura
 
@@ -85,67 +397,112 @@ Ao concluir o capítulo, o personagem recebe o `Cristal Incompreendido` e um leg
 | Frontend | HTML + CSS + JavaScript puro |
 | Servidor em container | gunicorn |
 
-### Visão rápida
+### Visão Rápida
 
 ```mermaid
 flowchart LR
     A[Frontend HTML CSS JS] --> B[Flask]
-    B --> C[Blueprints auth player game]
-    C --> D[(PostgreSQL)]
-    C --> E[Narrative Services]
-    E --> F[LangGraph Master Graph]
-    F --> G[Groq opcional]
+    B --> C[Blueprints]
+    C --> D[Auth Player Game]
+    C --> E[(PostgreSQL)]
+    D --> F[Narrative Services]
+    F --> G[LangGraph Master Graph]
+    G --> H[Groq opcional]
+    F --> E
 ```
 
-### Componentes principais
-
-- `backend/app.py`: carrega `.env`, registra blueprints e roda migrações antes de subir o servidor
-- `backend/web_blueprints/`: separa rotas de autenticação, jogador e jogo
-- `backend/narrative/`: concentra estado, memória, rolagem, sugestões e ciclo do mestre
-- `backend/master_graph.py`: organiza geração, revisão, fallback e finalização do pipeline narrativo
-- `frontend/game_play.html` + `frontend/script.js`: renderizam a interface principal e sincronizam a cena sem hard reload
-
-### Ordem do grafo narrativo
-
-O `master_graph.py` segue uma ordem fixa de estágios, com ramificações controladas para revisão, fallback e bloqueio de sugestões:
+### Fluxo De Uma Mensagem Do Jogador
 
 ```mermaid
-flowchart LR
-    A[prepare_state] --> B[mechanics]
-    B --> C[narrative_generate]
-    C --> D{Falhou na geração narrativa?}
-    D -- Não --> E[narrative_review]
-    D -- Sim --> H[narrative_fallback]
+sequenceDiagram
+    participant U as Jogador
+    participant F as Frontend
+    participant B as Flask
+    participant S as GameMasterService
+    participant G as LangGraph
+    participant L as Groq
+    participant DB as PostgreSQL
 
-    E --> F{Revisão narrativa válida?}
-    F -- Sim --> G[narrative_approved]
-    F -- Revisar --> I[narrative_revise]
-    I --> E
-    F -- Fallback --> H
-
-    G --> J{Há evento mecânico ou story_event?}
-    H --> J
-    J -- Sim --> K[suggestions_blocked]
-    J -- Não --> L[suggestions_generate]
-
-    L --> M{Falhou na geração de sugestões?}
-    M -- Não --> N[suggestions_review]
-    M -- Sim --> Q[suggestions_fallback]
-
-    N --> O{Revisão de sugestões válida?}
-    O -- Sim --> P[suggestions_approved]
-    O -- Revisar --> R[suggestions_revise]
-    R --> N
-    O -- Fallback --> Q
-
-    K --> S[finalize]
-    P --> S
-    Q --> S
+    U->>F: envia ação ou mensagem
+    F->>B: POST /jogo/mestre
+    B->>S: run_master_conversation
+    S->>DB: carrega personagem, cena, mensagens e memória
+    S->>G: invoca grafo do mestre
+    G->>L: chama LLM quando Groq está configurado
+    G->>G: revisa, aplica fallback e finaliza
+    G-->>S: narração, evento, próxima cena e sugestões
+    S->>DB: persiste mensagens e estado
+    S-->>B: snapshot atualizado
+    B-->>F: JSON da resposta
+    F-->>U: atualiza tela do jogo
 ```
 
-Na prática, o grafo sempre começa em `prepare_state`, passa por leitura mecânica em `mechanics`, tenta produzir a narração, revisa a saída, pode revisar uma vez antes de cair em fallback, só gera sugestões se não houver bloqueio de evento e termina consolidando narração, evento, próxima cena e ações sugeridas.
+### Componentes Principais
 
-## Rotas principais
+| Caminho | Responsabilidade |
+| --- | --- |
+| `backend/app.py` | cria a aplicação, carrega `.env`, registra blueprints e conecta dependências |
+| `backend/run.py` | ponto de entrada local |
+| `backend/app_factory.py` | factory do Flask |
+| `backend/database.py` | engine, sessão e utilitários do banco |
+| `backend/models.py` | modelos SQLAlchemy |
+| `backend/game_content.py` | catálogo de raças, classes, atributos, monstros e conteúdo de jogo |
+| `backend/master_graph.py` | grafo canônico do mestre com LangGraph |
+| `backend/master_state.py` | normalização de estado e construção de autoridade/fallbacks |
+| `backend/master_pipeline/` | agentes, prompts, parsers, revisores e runtime de LLM |
+| `backend/narrative/` | serviços de campanha, memória, rolagem, cenas, eventos e estado |
+| `backend/web_blueprints/` | rotas separadas por domínio: auth, player e game |
+| `backend/web_support/` | helpers usados pelos blueprints |
+| `backend/lore/` | pacotes de lore enviados ao mestre |
+| `frontend/` | páginas HTML, CSS, JS e assets |
+| `docs/screenshots/` | imagens e GIF usados no README |
+| `alembic/` | configuração e versões de migração |
+| `tests/` | testes Python e JavaScript |
+
+## Persistência E Estado
+
+O projeto persiste informações importantes para permitir continuidade de campanha.
+
+### Principais Dados Persistidos
+
+- usuário;
+- hash de senha;
+- ficha do personagem;
+- raça e classe;
+- atributos;
+- cena atual;
+- ato atual;
+- flags narrativas;
+- inventário narrativo;
+- XP;
+- ouro;
+- evento pendente;
+- recompensa recente;
+- autoridade narrativa recente;
+- sugestões de ações;
+- mensagens do jogo;
+- resumos de memória.
+
+### Estado Autoritativo
+
+O estado autoritativo é uma camada de segurança narrativa. Ele descreve a verdade atual do jogo e limita o que a IA pode sugerir.
+
+Exemplos de informações controladas por essa camada:
+
+- cena atual;
+- próximas cenas permitidas;
+- se existe rolagem pendente;
+- se existe recompensa recente;
+- alvo atual;
+- nível de perigo;
+- tipos de ação permitidos;
+- fase da cena;
+- contexto pós-combate;
+- itens relevantes no inventário.
+
+Na prática, a IA pode escrever uma narração mais rica, mas não deve sobrescrever a verdade do backend.
+
+## Rotas Principais
 
 ### Páginas
 
@@ -174,7 +531,7 @@ Na prática, o grafo sempre começa em `prepare_state`, passa por leitura mecân
 | `/jogo/rolar/consequencia` | `POST` | devolve a consequência narrativa |
 | `/jogo/resetar-campanha` | `POST` | reinicia o capítulo mantendo a ficha |
 
-## Estrutura do repositório
+## Estrutura Do Repositório
 
 ```text
 .
@@ -185,10 +542,32 @@ Na prática, o grafo sempre começa em `prepare_state`, passa por leitura mecân
 |   |-- models.py
 |   |-- game_content.py
 |   |-- master_graph.py
+|   |-- master_state.py
 |   |-- master_pipeline/
+|   |   |-- mechanics_agent.py
+|   |   |-- narrative_agent.py
+|   |   |-- suggestion_agent.py
+|   |   |-- prompts.py
+|   |   |-- parsers.py
+|   |   |-- reviewers.py
+|   |   |-- runtime.py
+|   |   `-- contracts.py
 |   |-- narrative/
+|   |   |-- game_master_service.py
+|   |   |-- turn_service.py
+|   |   |-- turn_pipeline.py
+|   |   |-- scene_flow.py
+|   |   |-- roll_service.py
+|   |   |-- action_rolls.py
+|   |   |-- story_events.py
+|   |   |-- memory_service.py
+|   |   |-- state_store.py
+|   |   |-- authority.py
+|   |   |-- llm_gateway.py
+|   |   `-- web_handlers.py
 |   |-- web_blueprints/
-|   `-- web_support/
+|   |-- web_support/
+|   `-- lore/
 |-- frontend/
 |   |-- index.html
 |   |-- login.html
@@ -202,24 +581,28 @@ Na prática, o grafo sempre começa em `prepare_state`, passa por leitura mecân
 |   |-- game_play.html
 |   |-- script.js
 |   |-- game_ui_helpers.js
-|   `-- styles.css
+|   |-- styles.css
+|   `-- assets/
+|-- docs/
+|   `-- screenshots/
 |-- alembic/
 |-- tests/
 |-- docker-compose.yml
 |-- Dockerfile
-`-- requirements.txt
+|-- requirements.txt
+`-- README.md
 ```
 
-## Execução local
+## Execução Local
 
-### Pré-requisitos
+### Pré-Requisitos
 
-- Python 3.12 recomendado
-- PostgreSQL 16 recomendado
-- Node 18+ opcional para o teste JS
-- Docker opcional
+- Python 3.12 recomendado;
+- PostgreSQL 16 recomendado;
+- Node 18+ opcional para o teste JavaScript;
+- Docker opcional.
 
-### 1. Criar ambiente virtual
+### 1. Criar Ambiente Virtual
 
 ```powershell
 py -3.12 -m venv .venv
@@ -228,15 +611,15 @@ py -m pip install --upgrade pip
 py -m pip install -r requirements.txt
 ```
 
-### 2. Configurar o banco
+### 2. Configurar O Banco
 
-Você pode usar um PostgreSQL local ou subir apenas o banco pelo Compose:
+Você pode usar um PostgreSQL local ou deixar a aplicação subir o banco pelo Compose na primeira execução. Para subir apenas o banco manualmente:
 
 ```powershell
 docker compose up -d db
 ```
 
-### 3. Criar o `.env`
+### 3. Criar O `.env`
 
 ```env
 SECRET_KEY=troque-por-uma-chave-segura
@@ -250,9 +633,9 @@ POSTGRES_PASSWORD=postgres
 GROQ_API_KEY=sua-chave-aqui
 ```
 
-Se preferir, `DATABASE_URL` pode substituir os `POSTGRES_*`.
+Se preferir, `DATABASE_URL` pode substituir os campos `POSTGRES_*`.
 
-### 4. Rodar a aplicação
+### 4. Rodar A Aplicação
 
 ```powershell
 py backend/run.py
@@ -260,43 +643,62 @@ py backend/run.py
 
 Ao iniciar localmente, a aplicação:
 
-1. espera o banco ficar disponível
-2. executa `alembic upgrade head`
-3. sobe o servidor Flask
+1. verifica se o banco local do Compose existe e inicia o serviço `db` se necessário;
+2. usa um PostgreSQL local já aberto em `127.0.0.1:5432` caso não exista container do projeto;
+3. espera o banco ficar disponível;
+4. executa `alembic upgrade head`;
+5. sobe o servidor Flask.
 
 Padrão local:
 
-- app: `http://127.0.0.1:8000`
-- banco: `127.0.0.1:5432`
+- app: `http://127.0.0.1:8000`;
+- banco: `127.0.0.1:5432`.
 
-### 5. Rodar apenas migrações
+### 5. Rodar Apenas Migrações
 
 ```powershell
 py backend/migrate.py
 ```
 
-## Variáveis de ambiente
+## Variáveis De Ambiente
+
+### Aplicação E Banco
 
 | Variável | Default | Uso |
 | --- | --- | --- |
 | `SECRET_KEY` | `dev-secret-key` | chave de sessão do Flask |
-| `DATABASE_URL` | vazio | URL completa do banco |
+| `DATABASE_URL` | vazio | URL completa do banco; se definida, substitui `POSTGRES_*` |
 | `POSTGRES_HOST` | `127.0.0.1` | host do banco |
 | `POSTGRES_PORT` | `5432` | porta do banco |
 | `POSTGRES_DB` | `bjornsson` | nome do banco |
 | `POSTGRES_USER` | `postgres` | usuário do banco |
 | `POSTGRES_PASSWORD` | `postgres` | senha do banco |
-| `DB_CONNECT_RETRIES` | `20` | tentativas de conexão |
+| `DB_CONNECT_RETRIES` | `20` | tentativas de conexão com o banco |
 | `DB_CONNECT_DELAY` | `1.5` | intervalo entre tentativas |
 | `FLASK_HOST` | `127.0.0.1` | host do app |
 | `FLASK_PORT` | `8000` | porta do app |
 | `FLASK_DEBUG` | `true` | modo debug |
-| `GROQ_API_KEY` | vazio | habilita o mestre conversacional |
-| `GROQ_MODEL_NARRATIVE` | `qwen/qwen3-32b` | modelo narrativo |
-| `GROQ_MODEL_FAST` | `llama-3.1-8b-instant` | modelo rápido |
-| `GROQ_TIMEOUT_SECONDS` | `25.0` | timeout global da Groq |
+
+### IA E Groq
+
+| Variável | Default | Uso |
+| --- | --- | --- |
+| `GROQ_API_KEY` | vazio | habilita chamadas para Groq |
+| `GROQ_MODEL_NARRATIVE` | `qwen/qwen3-32b` | modelo usado nos estágios narrativos |
+| `GROQ_MODEL_FAST` | `llama-3.1-8b-instant` | modelo rápido usado quando o estágio pede `fast` |
+| `GROQ_MODEL` | vazio | fallback legado para modelo narrativo |
+| `GROQ_TIMEOUT_SECONDS` | `25.0` | timeout global |
+| `GROQ_TIMEOUT_SECONDS_NARRATIVE` | vazio | timeout específico para narrativa |
+| `GROQ_TIMEOUT_SECONDS_FAST` | vazio | timeout específico para estágios rápidos |
 | `GROQ_MAX_TOKENS` | `700` | limite global de tokens |
-| `TOTP_ISSUER_NAME` | vazio | legado reservado para futura expansão de 2FA |
+| `GROQ_MAX_TOKENS_NARRATIVE` | vazio | limite específico para narrativa |
+| `GROQ_MAX_TOKENS_FAST` | vazio | limite específico para estágios rápidos |
+
+### Legado
+
+| Variável | Default | Uso |
+| --- | --- | --- |
+| `TOTP_ISSUER_NAME` | vazio | reservado para futura expansão de 2FA |
 
 ## Docker
 
@@ -318,7 +720,10 @@ Para derrubar e remover o volume do banco:
 docker compose down -v
 ```
 
-Serviços: `bjornsson-db` com PostgreSQL 16 Alpine e volume persistente, e `bjornsson-app` com Python 3.12 Slim, migrações e `gunicorn`.
+Serviços:
+
+- `bjornsson-db`: PostgreSQL 16 Alpine com volume persistente;
+- `bjornsson-app`: Python 3.12 Slim, migrações e `gunicorn`.
 
 ## Testes
 
@@ -334,35 +739,55 @@ Teste JavaScript do helper de UI:
 node --test tests/test_frontend_roll_modal.js
 ```
 
-A suíte cobre fluxo de cenas e transições, pipeline do mestre, runtime do gateway Groq, rotas do backend, serviço de rolagem, sincronização do frontend e lifecycle do modal de rolagem.
+A suíte cobre:
 
-## Modo com e sem Groq
+- fluxo de cenas e transições;
+- pipeline do mestre;
+- runtime do gateway Groq;
+- parser do grafo;
+- rotas do backend;
+- serviço de rolagem;
+- autoridade narrativa;
+- sincronização do frontend;
+- lifecycle do modal de rolagem.
+
+## Modo Com E Sem Groq
 
 | Recurso | Sem `GROQ_API_KEY` | Com `GROQ_API_KEY` |
 | --- | --- | --- |
-| Onboarding e campanha estruturada | sim | sim |
-| Encontros, drops, XP e ouro | sim | sim |
+| Cadastro, login e ficha | sim | sim |
+| Onboarding de personagem | sim | sim |
+| Campanha estruturada | sim | sim |
+| Cenas, encontros e progresso | sim | sim |
+| Drops, XP e ouro | sim | sim |
 | Tela principal do jogo | sim | sim |
-| Chat em `/jogo/mestre` | não | sim |
-| Intro dinâmica do mestre | fallback local | sim |
-| Sugestões narrativas | fallback local | sim |
+| Chat livre em `/jogo/mestre` | não | sim |
+| Intro dinâmica do mestre | fallback local | IA + fallback |
+| Sugestões narrativas | fallback local | IA + revisão + fallback |
+| Detecção livre de evento mecânico | limitada ao fluxo estruturado | IA + parser + validação |
 | Resumo de memória com LLM | não | sim |
 
-Na prática, sem Groq o projeto continua jogável como experiência guiada; com Groq, a experiência fica mais conversacional e flexível.
+Sem Groq, o projeto continua jogável como experiência guiada. Com Groq, a experiência fica mais conversacional, porque o jogador pode escrever ações livres e receber narrações mais adaptadas ao contexto.
 
-## Estado atual e limitações
+## Estado Atual E Limitações
 
-- o projeto está concentrado no Capítulo I, embora a base permita expansão
-- parte do estado narrativo fica serializada em texto na tabela `characters`
-- o frontend é propositalmente simples, sem framework de componentes
-- o README antigo citava `2FA com TOTP e QR code`, mas isso não está integrado ao fluxo atual
-- existem campos de 2FA no modelo e no ambiente, mas não há validação TOTP ativa no login
+- o projeto está concentrado no Capítulo I;
+- a base permite expansão para novos capítulos, cenas, monstros e recompensas;
+- parte do estado narrativo fica serializada em texto na tabela `characters`;
+- o frontend é propositalmente simples e não usa framework de componentes;
+- a IA depende da disponibilidade e limites da Groq;
+- o grafo possui fallbacks, mas a qualidade máxima da experiência conversacional depende do modelo configurado;
+- existem campos e variáveis legadas relacionadas a 2FA, mas não há validação TOTP ativa no login;
+- o README antigo citava `2FA com TOTP e QR code`, mas isso não está integrado ao fluxo atual.
 
-## Resumo técnico rápido
+## Resumo Técnico Rápido
 
-- RPG web com Flask no backend e HTML/CSS/JS puro no frontend
-- PostgreSQL, SQLAlchemy e Alembic para persistência
-- onboarding completo de personagem
-- campanha inicial jogável em Elandoria
-- estado, inventário, XP, ouro e mensagens persistidos
-- mestre conversacional opcional com Groq + LangGraph
+- RPG web com Flask no backend e HTML/CSS/JS puro no frontend;
+- PostgreSQL, SQLAlchemy e Alembic para persistência;
+- onboarding completo de personagem;
+- campanha inicial jogável em Elandoria;
+- estado, inventário, XP, ouro e mensagens persistidos;
+- mestre conversacional opcional com Groq;
+- LangGraph como orquestrador do pipeline narrativo;
+- IA dividida em mecânica, narração, sugestões e memória;
+- validação e fallback para manter o jogo consistente.

@@ -757,6 +757,8 @@ Na prática, `User` autentica a pessoa, `Character` guarda a progressão jogáve
 - Node 18+ opcional para o teste JavaScript;
 - Docker opcional.
 
+O repositório inclui `.python-version` com `3.12.11` para manter a mesma linha de runtime em ambientes como Render.
+
 ### Caminho Rápido
 
 Para rodar do zero com o banco via Docker Compose:

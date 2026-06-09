@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: bjornsson-rpg
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: TOTP_ISSUER_NAME
+        value: O Reino Partido de Bjornsson
+      - key: DATABASE_AUTO_CREATE
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bjornsson-rpg-db
+          property: connectionString
+      - key: DB_CONNECT_RETRIES
+        value: "60"
+      - key: DB_CONNECT_DELAY
+        value: "2"
+      - key: GROQ_API_KEY
+        sync: false
+
+databases:
+  - name: bjornsson-rpg-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: "16"
+    databaseName: bjornsson
+    user: bjornsson
+    ipAllowList: []

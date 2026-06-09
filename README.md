@@ -8,8 +8,10 @@ Em resumo, este repositório não é apenas um chat com IA. Ele é um RPG web co
 
 ## Sumário
 
+- [Status Do Projeto](#status-do-projeto)
 - [Visão Geral](#visão-geral)
 - [O Que O Projeto Entrega](#o-que-o-projeto-entrega)
+- [Principais Diferenciais Técnicos](#principais-diferenciais-técnicos)
 - [Tour Visual Da Interface](#tour-visual-da-interface)
 - [Fluxo Do Jogador](#fluxo-do-jogador)
 - [Gameplay E Campanha](#gameplay-e-campanha)
@@ -18,14 +20,26 @@ Em resumo, este repositório não é apenas um chat com IA. Ele é um RPG web co
 - [Como A IA É Usada](#como-a-ia-é-usada)
 - [Arquitetura](#arquitetura)
 - [Persistência E Estado](#persistência-e-estado)
+- [Modelos Principais](#modelos-principais)
 - [Rotas Principais](#rotas-principais)
 - [Estrutura Do Repositório](#estrutura-do-repositório)
 - [Execução Local](#execução-local)
 - [Variáveis De Ambiente](#variáveis-de-ambiente)
 - [Docker](#docker)
+- [Deploy No Render](#deploy-no-render)
 - [Testes](#testes)
 - [Modo Com E Sem Groq](#modo-com-e-sem-groq)
+- [Troubleshooting](#troubleshooting)
+- [Decisões De Design](#decisões-de-design)
+- [Roadmap](#roadmap)
 - [Estado Atual E Limitações](#estado-atual-e-limitações)
+- [Licença](#licença)
+
+## Status Do Projeto
+
+Status atual: **MVP jogável do Capítulo I**.
+
+O projeto já permite criar usuário, criar personagem, escolher raça e classe, rolar atributos, entrar na campanha, conversar com o mestre, receber sugestões, resolver rolagens e persistir progresso. Ainda é uma base em evolução: o Capítulo I é o foco atual, algumas partes do estado narrativo ainda são serializadas em texto, e a experiência conversacional depende da configuração da Groq.
 
 ## Visão Geral
 
@@ -95,6 +109,23 @@ O objetivo técnico do projeto é combinar uma campanha estruturada com liberdad
 - Groq como provider opcional de LLM;
 - fallbacks locais para manter a experiência jogável sem IA;
 - testes automatizados em Python e JavaScript.
+
+## Principais Diferenciais Técnicos
+
+O projeto tem alguns pontos importantes que diferenciam a arquitetura de um chat simples:
+
+| Diferencial | Como Funciona |
+| --- | --- |
+| IA opcional | O jogo continua funcionando sem `GROQ_API_KEY`; a IA melhora a conversação, mas não é requisito para o fluxo estruturado |
+| LangGraph como pipeline | O mestre passa por nós de mecânica, narração, revisão, sugestão, fallback e finalização |
+| Estado autoritativo | O backend define o que é verdade no jogo e limita o que a IA pode narrar ou sugerir |
+| Rolagem pendente separada | O sistema registra o evento antes do dado e só narra a consequência depois da rolagem |
+| Fallback local | Se a IA falhar, responder mal ou gerar conteúdo inválido, o backend monta respostas e sugestões seguras |
+| Memória resumida | O histórico de conversa é persistido e pode ser resumido por LLM para manter continuidade |
+| Progressão persistida | Cena, ato, inventário, XP, ouro, mensagens e estado narrativo ficam no PostgreSQL |
+| Testes focados no fluxo | A suíte cobre grafo, parser, autoridade narrativa, rolagens, rotas e sincronização de frontend |
+
+Esses pontos são centrais para a proposta do repositório: usar IA como camada de narrativa controlada, não como substituta das regras do jogo.
 
 ## Tour Visual Da Interface
 
@@ -603,6 +634,28 @@ Exemplos de informações controladas por essa camada:
 
 Na prática, a IA pode escrever uma narração mais rica, mas não deve sobrescrever a verdade do backend.
 
+## Modelos Principais
+
+Os modelos SQLAlchemy ficam em `backend/models.py` e representam a parte persistida do jogo.
+
+| Modelo | Tabela | Papel |
+| --- | --- | --- |
+| `User` | `users` | conta do jogador, e-mail, hash de senha, data de nascimento e campos legados de 2FA |
+| `Character` | `characters` | ficha do personagem, raça, classe, atributos, XP, ouro, cena atual, ato, flags, inventário e evento pendente |
+| `GameMessage` | `game_messages` | histórico de mensagens entre jogador e mestre, associado ao personagem e à cena |
+| `MemorySummary` | `memory_summaries` | resumo persistido da campanha, usado para manter continuidade sem reenviar todo o histórico |
+
+### Relação Entre Os Dados
+
+```mermaid
+erDiagram
+    User ||--o| Character : possui
+    Character ||--o{ GameMessage : registra
+    Character ||--o{ MemorySummary : resume
+```
+
+Na prática, `User` autentica a pessoa, `Character` guarda a progressão jogável, `GameMessage` mantém o histórico de interação e `MemorySummary` condensa memória de longo prazo para o mestre.
+
 ## Rotas Principais
 
 ### Páginas
@@ -690,6 +743,7 @@ Na prática, a IA pode escrever uma narração mais rica, mas não deve sobrescr
 |-- tests/
 |-- docker-compose.yml
 |-- Dockerfile
+|-- render.yaml
 |-- requirements.txt
 `-- README.md
 ```
@@ -702,6 +756,25 @@ Na prática, a IA pode escrever uma narração mais rica, mas não deve sobrescr
 - PostgreSQL 16 recomendado;
 - Node 18+ opcional para o teste JavaScript;
 - Docker opcional.
+
+### Caminho Rápido
+
+Para rodar do zero com o banco via Docker Compose:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+py -m pip install --upgrade pip
+py -m pip install -r requirements.txt
+docker compose up -d db
+py backend/run.py
+```
+
+Depois acesse:
+
+- app: `http://127.0.0.1:8000`
+- login: `http://127.0.0.1:8000/login`
+- registro: `http://127.0.0.1:8000/registro`
 
 ### 1. Criar Ambiente Virtual
 
@@ -774,6 +847,7 @@ py backend/migrate.py
 | `POSTGRES_DB` | `bjornsson` | nome do banco |
 | `POSTGRES_USER` | `postgres` | usuário do banco |
 | `POSTGRES_PASSWORD` | `postgres` | senha do banco |
+| `DATABASE_AUTO_CREATE` | `true` | habilita a criação automática do database antes das migrações; use `false` em banco gerenciado |
 | `DB_CONNECT_RETRIES` | `20` | tentativas de conexão com o banco |
 | `DB_CONNECT_DELAY` | `1.5` | intervalo entre tentativas |
 | `FLASK_HOST` | `127.0.0.1` | host do app |
@@ -826,6 +900,35 @@ Serviços:
 - `bjornsson-db`: PostgreSQL 16 Alpine com volume persistente;
 - `bjornsson-app`: Python 3.12 Slim, migrações e `gunicorn`.
 
+## Deploy No Render
+
+O repositório inclui `render.yaml` para subir a aplicação como Blueprint no Render. A Blueprint cria:
+
+- um Web Service Docker chamado `bjornsson-rpg`;
+- um Render Postgres chamado `bjornsson-rpg-db`;
+- o database PostgreSQL `bjornsson`;
+- o usuário PostgreSQL `bjornsson`;
+- `DATABASE_URL` apontando para a connection string interna do Postgres;
+- `SECRET_KEY` gerada automaticamente pelo Render.
+
+Fluxo de inicialização em produção:
+
+1. o Render cria o Postgres declarado em `render.yaml`;
+2. o Web Service recebe `DATABASE_URL` via `fromDatabase`;
+3. o container executa `python backend/migrate.py`;
+4. o Alembic aplica todas as migrations em `alembic/versions`;
+5. o Gunicorn inicia o Flask na porta `PORT`.
+
+Para publicar:
+
+1. envie este repositório para GitHub, GitLab ou Bitbucket;
+2. no Render, crie uma nova Blueprint apontando para o repositório;
+3. confirme o `render.yaml`;
+4. informe `GROQ_API_KEY` quando o Render pedir, se quiser habilitar o mestre conversacional;
+5. aguarde o primeiro deploy.
+
+No Render, `DATABASE_AUTO_CREATE=false` é intencional: o database é criado pela própria Blueprint, e o projeto só cria as tabelas e índices pelas migrations.
+
 ## Testes
 
 Testes Python:
@@ -870,6 +973,128 @@ A suíte cobre:
 
 Sem Groq, o projeto continua jogável como experiência guiada. Com Groq, a experiência fica mais conversacional, porque o jogador pode escrever ações livres e receber narrações mais adaptadas ao contexto.
 
+## Troubleshooting
+
+### O App Não Conecta No PostgreSQL
+
+Verifique se o banco está rodando:
+
+```powershell
+docker compose ps
+```
+
+Se o serviço `db` não estiver ativo, suba o banco:
+
+```powershell
+docker compose up -d db
+```
+
+Também confirme se as variáveis `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD` batem com o banco em uso.
+
+### Porta `5432` Ocupada
+
+Se já existe um PostgreSQL local usando `5432`, você pode:
+
+- usar esse PostgreSQL local com as credenciais do `.env`;
+- parar o serviço local temporariamente;
+- alterar o mapeamento de porta do `docker-compose.yml`.
+
+Quando a aplicação usa `POSTGRES_HOST=127.0.0.1` e `POSTGRES_PORT=5432`, ela tenta se conectar ao banco exposto nessa porta.
+
+### Porta `8000` Ocupada
+
+Altere a porta da aplicação no `.env`:
+
+```env
+FLASK_PORT=8001
+```
+
+Depois rode novamente:
+
+```powershell
+py backend/run.py
+```
+
+### Migrações Falhando
+
+Rode as migrações manualmente para ver o erro com mais clareza:
+
+```powershell
+py backend/migrate.py
+```
+
+Se o banco estiver inconsistente durante desenvolvimento local, uma alternativa é derrubar o volume e recriar tudo. Isso apaga os dados locais:
+
+```powershell
+docker compose down -v
+docker compose up -d db
+py backend/migrate.py
+```
+
+### `GROQ_API_KEY` Ausente
+
+Sem `GROQ_API_KEY`, o jogo continua funcionando como experiência guiada, mas o chat livre do mestre e os resumos com LLM não ficam disponíveis.
+
+Para habilitar:
+
+```env
+GROQ_API_KEY=sua-chave-aqui
+```
+
+### Rate Limit Ou Erro Da Groq
+
+Se a Groq retornar limite de uso ou erro temporário, o pipeline tenta preservar a experiência usando fallbacks locais. Em desenvolvimento, confira:
+
+- se a chave está correta;
+- se o modelo configurado existe;
+- se `GROQ_TIMEOUT_SECONDS` não está baixo demais;
+- se a conta da Groq ainda possui cota.
+
+### Imagens Do README Não Aparecem
+
+As imagens ficam em `docs/screenshots/`. Se elas não renderizarem no GitHub ou no editor:
+
+- confira se os arquivos existem nessa pasta;
+- confirme que o caminho relativo no Markdown começa com `docs/screenshots/`;
+- evite renomear os arquivos sem atualizar o README.
+
+### GIF Pesado No README
+
+O GIF `master-interaction-demo.gif` tem tamanho alto porque demonstra a interface em movimento. Se o carregamento do README ficar lento, reduza resolução/FPS ou converta para WebP animado antes de publicar.
+
+## Decisões De Design
+
+| Decisão | Motivo |
+| --- | --- |
+| Frontend sem framework | Mantém o projeto simples, direto e fácil de rodar sem pipeline de build |
+| Campanha estruturada | Garante progressão real mesmo sem IA e evita depender só de texto gerado |
+| IA opcional | Permite jogar e testar sem chave externa, custo ou disponibilidade de provider |
+| LangGraph no mestre | Organiza a resposta em etapas auditáveis, com revisão e fallback |
+| Estado autoritativo | Impede que a IA altere livremente regras, inventário, XP, ouro ou cenas |
+| Rolagem pendente separada | Evita que a narração declare sucesso ou fracasso antes do dado ser rolado |
+| Fallback local | Mantém a experiência funcionando quando o modelo falha, recusa ou retorna algo inválido |
+| PostgreSQL | Persiste progresso, mensagens e memória de campanha de forma durável |
+| Alembic | Controla evolução do schema sem recriar banco manualmente |
+| Testes de pipeline | Reduz regressões em uma área sensível: IA, parsing, revisão e estado narrativo |
+
+## Roadmap
+
+Possíveis próximos passos para evolução do projeto:
+
+- expandir o Capítulo I com mais cenas, escolhas e consequências;
+- criar Capítulo II com novos atos, monstros e recompensas;
+- melhorar o sistema de combate, dano, defesa e condições;
+- criar uma tela de inventário mais completa;
+- adicionar histórico visual de eventos importantes da campanha;
+- melhorar responsividade mobile da tela de jogo;
+- adicionar testes E2E para o fluxo completo no navegador;
+- criar painel de debug para visualizar `execution_trace` e `pipeline_diagnostics`;
+- transformar campos narrativos serializados em tabelas mais normalizadas;
+- revisar ou remover o legado de 2FA;
+- adicionar suporte a outros providers de LLM além da Groq;
+- reduzir ou converter o GIF do README para um formato mais leve;
+- publicar uma licença formal antes de distribuição pública.
+
 ## Estado Atual E Limitações
 
 - o projeto está concentrado no Capítulo I;
@@ -880,6 +1105,10 @@ Sem Groq, o projeto continua jogável como experiência guiada. Com Groq, a expe
 - o grafo possui fallbacks, mas a qualidade máxima da experiência conversacional depende do modelo configurado;
 - existem campos e variáveis legadas relacionadas a 2FA, mas não há validação TOTP ativa no login;
 - o README antigo citava `2FA com TOTP e QR code`, mas isso não está integrado ao fluxo atual.
+
+## Licença
+
+Este repositório ainda não define uma licença formal. Antes de uso público, distribuição, fork comercial ou publicação como pacote, escolha e adicione uma licença compatível com o objetivo do projeto.
 
 ## Resumo Técnico Rápido
 

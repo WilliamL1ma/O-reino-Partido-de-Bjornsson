@@ -31,6 +31,7 @@ services:
       FLASK_DEBUG: "false"
       FLASK_HOST: 0.0.0.0
       FLASK_PORT: 8000
+      PORT: 8000
       SECRET_KEY: troque-esta-chave-em-producao
       TOTP_ISSUER_NAME: O Reino Partido de Bjornsson
       POSTGRES_HOST: db

@@ -14,6 +14,14 @@ from sqlalchemy.orm import DeclarativeBase, Session, scoped_session, sessionmake
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT_DIR / ".env")
+FALSE_ENV_VALUES = {"0", "false", "no", "off"}
+
+
+def _env_flag_is_enabled(name: str, default: bool = True) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() not in FALSE_ENV_VALUES
 
 
 def get_database_url() -> str:
@@ -141,6 +149,9 @@ def _quote_postgres_identifier(identifier: str) -> str:
 
 
 def ensure_database_exists() -> None:
+    if not _env_flag_is_enabled("DATABASE_AUTO_CREATE", default=True):
+        return
+
     ensure_local_postgres_container()
     database_url = get_database_url()
     url = make_url(database_url)

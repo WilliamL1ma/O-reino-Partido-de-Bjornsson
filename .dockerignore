@@ -4,5 +4,8 @@ __pycache__
 *.pyo
 *.pyd
 .git
+.env
+.env.*
+!.env.example
 server.out
 server.err

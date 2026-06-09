@@ -93,6 +93,17 @@ class LocalPostgresStartupTests(unittest.TestCase):
         compose_service_has_container.assert_not_called()
         start_compose_service.assert_not_called()
 
+    def test_can_disable_database_creation_for_managed_database(self) -> None:
+        with (
+            patch.dict("os.environ", {"DATABASE_AUTO_CREATE": "false"}, clear=True),
+            patch.object(database, "ensure_local_postgres_container") as ensure_local_postgres_container,
+            patch.object(database, "create_engine") as create_engine,
+        ):
+            database.ensure_database_exists()
+
+        ensure_local_postgres_container.assert_not_called()
+        create_engine.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

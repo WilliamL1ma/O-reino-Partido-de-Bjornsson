@@ -68,6 +68,7 @@ from web_support.player_helpers import (
 ROOT_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = ROOT_DIR / "frontend"
 ENV_FILE = ROOT_DIR / ".env"
+_schema_ready = False
 
 load_dotenv(ENV_FILE)
 
@@ -337,11 +338,23 @@ def create_app():
     )
 
 
+def ensure_schema_ready() -> None:
+    global _schema_ready
+    if _schema_ready:
+        return
+
+    run_migrations()
+    _schema_ready = True
+
+
+if os.getenv("FLASK_ENV", "").lower() == "production":
+    ensure_schema_ready()
+
 app = create_app()
 
 
 def start_server() -> None:
-    run_migrations()
+    ensure_schema_ready()
     host = os.getenv("FLASK_HOST", "127.0.0.1")
     port = int(os.getenv("FLASK_PORT", "8000"))
     debug = os.getenv("FLASK_DEBUG", "true").lower() == "true"

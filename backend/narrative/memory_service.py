@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from database import session_scope
 from models import Character, GameMessage, MemorySummary
@@ -76,6 +77,20 @@ def message_count_for_character(character_id: int) -> int:
     with session_scope() as db_session:
         rows = db_session.scalars(select(GameMessage.id).where(GameMessage.character_id == character_id)).all()
     return len(rows)
+
+
+def player_message_count_since(character_id: int, since: datetime) -> int:
+    with session_scope() as db_session:
+        count = db_session.scalar(
+            select(func.count())
+            .select_from(GameMessage)
+            .where(
+                GameMessage.character_id == character_id,
+                GameMessage.role == "player",
+                GameMessage.created_at >= since,
+            )
+        )
+    return int(count or 0)
 
 
 def summarize_memory_if_needed(

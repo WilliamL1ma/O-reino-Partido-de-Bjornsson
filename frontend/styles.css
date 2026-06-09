@@ -1023,6 +1023,18 @@ a {
   box-shadow: 0 0 0 3px rgba(216, 179, 106, 0.12);
 }
 
+.game-chat__input-meta {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 18px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.game-chat__input-meta .is-near-limit {
+  color: var(--gold-strong);
+}
+
 .game-chat__form button {
   width: 100%;
 }

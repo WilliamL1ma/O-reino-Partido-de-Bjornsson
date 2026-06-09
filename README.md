@@ -867,9 +867,12 @@ py backend/migrate.py
 | `GROQ_TIMEOUT_SECONDS` | `25.0` | timeout global |
 | `GROQ_TIMEOUT_SECONDS_NARRATIVE` | vazio | timeout específico para narrativa |
 | `GROQ_TIMEOUT_SECONDS_FAST` | vazio | timeout específico para estágios rápidos |
+| `GROQ_MAX_INPUT_TOKENS` | `4000` | limite aproximado de tokens de entrada por chamada antes de consultar a Groq |
 | `GROQ_MAX_TOKENS` | `700` | limite global de tokens |
 | `GROQ_MAX_TOKENS_NARRATIVE` | vazio | limite específico para narrativa |
 | `GROQ_MAX_TOKENS_FAST` | vazio | limite específico para estágios rápidos |
+| `PLAYER_MESSAGE_MAX_CHARS` | `500` | limite de caracteres para cada mensagem livre do jogador |
+| `PLAYER_DAILY_MASTER_TURN_LIMIT` | `40` | limite de mensagens do jogador por personagem em janela de 24 horas |
 
 ### Legado
 

@@ -122,6 +122,31 @@ class LlmGatewayTests(unittest.TestCase):
 
         self.assertIn("Falha ao conectar na Groq", str(captured.exception))
 
+    def test_call_groq_messages_blocks_oversized_prompt_before_client_call(self) -> None:
+        create_was_called = False
+
+        def _create(**_kwargs):
+            nonlocal create_was_called
+            create_was_called = True
+            return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="resposta"))])
+
+        client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=_create)))
+
+        with patch.dict("os.environ", {"GROQ_MAX_INPUT_TOKENS": "1"}):
+            with self.assertRaises(llm_gateway.LLMUsageLimitError):
+                llm_gateway.call_groq_messages(
+                    [{"role": "user", "content": "texto grande"}],
+                    settings=llm_gateway.GroqSettings(api_key="key", model="model-x", timeout=19.0),
+                    client=client,
+                )
+
+        self.assertFalse(create_was_called)
+
+    def test_format_groq_error_preserves_local_usage_limit_errors(self) -> None:
+        error = llm_gateway.LLMUsageLimitError("limite local")
+
+        self.assertIs(llm_gateway.format_groq_error(error), error)
+
 
 if __name__ == "__main__":
     unittest.main()

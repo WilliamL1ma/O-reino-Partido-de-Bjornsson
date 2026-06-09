@@ -11,11 +11,12 @@ from game_content import CHAPTER_SCENES, MONSTERS, TACTICS
 from models import Character
 
 from .game_master_service import build_game_view_snapshot, ensure_story_initialized, run_master_conversation
-from .llm_gateway import LLMRateLimitError, call_groq_messages, groq_is_configured
-from .memory_service import store_gm_message
+from .llm_gateway import LLMRateLimitError, LLMUsageLimitError, call_groq_messages, groq_is_configured
+from .memory_service import player_message_count_since, store_gm_message
 from .roll_service import run_roll_resolution, run_roll_start
 from .scene_flow import get_encounter_transition
 from .state_store import get_pending_event, get_story_flags, get_story_inventory, persist_story_state
+from .usage_limits import daily_usage_window_start, get_player_daily_master_turn_limit, get_player_message_max_chars
 
 
 LOGGER = logging.getLogger(__name__)
@@ -47,6 +48,9 @@ PUBLIC_ERROR_MESSAGES = {
     "master_unavailable": "A voz do mestre está distante agora. Tente novamente mais tarde.",
     "pending_roll_required": "A cena ficou suspensa no dado. Resolva a rolagem pendente antes de continuar.",
     "message_required": "Diga o que seu personagem tenta fazer antes de chamar o mestre.",
+    "message_too_long": "Sua mensagem passou do limite de uso. Envie uma ação com até {limit} caracteres.",
+    "daily_usage_limit": "Limite diário de uso da IA atingido para este personagem. Tente novamente mais tarde.",
+    "prompt_usage_limit": "A cena ficou grande demais para consultar a IA dentro do limite de uso. Tente uma ação mais curta.",
     "no_pending_roll": "Não há nenhuma rolagem pendente agora.",
     "master_busy": "O mestre precisa de um instante para retomar o fio da cena. Tente novamente em breve.",
     "master_failure": "A voz do mestre vacila por um instante, mas a cena ainda está aí. Tente novamente.",
@@ -62,6 +66,16 @@ def _json_error(message: str, status_code: int) -> tuple[object, int]:
 def _mask_logged_exception(*, public_message: str, status_code: int, log_message: str) -> tuple[object, int]:
     LOGGER.exception(log_message)
     return _json_error(public_message, status_code)
+
+
+def _daily_master_turn_limit_is_reached(character: Character) -> bool:
+    character_id = getattr(character, "id", None)
+    if character_id is None or getattr(character, "user_id", None) is None:
+        return False
+
+    daily_limit = get_player_daily_master_turn_limit()
+    current_count = player_message_count_since(character_id, daily_usage_window_start())
+    return current_count >= daily_limit
 
 
 def _inventory_names(inventory: list[dict]) -> set[str]:
@@ -431,6 +445,7 @@ def handle_game_play(
         current_moment=view_snapshot.current_moment,
         memory_summary=view_snapshot.memory_summary,
         suggested_actions=view_snapshot.suggested_actions,
+        player_message_max_chars=get_player_message_max_chars(),
         groq_enabled=groq_enabled,
         pending_event=view_snapshot.pending_event,
     )
@@ -460,6 +475,11 @@ def handle_game_master_chat(
     player_message = request.form.get("message", "").strip()
     if not player_message:
         return _json_error(PUBLIC_ERROR_MESSAGES["message_required"], 400)
+    player_message_max_chars = get_player_message_max_chars()
+    if len(player_message) > player_message_max_chars:
+        return _json_error(PUBLIC_ERROR_MESSAGES["message_too_long"].format(limit=player_message_max_chars), 413)
+    if _daily_master_turn_limit_is_reached(character):
+        return _json_error(PUBLIC_ERROR_MESSAGES["daily_usage_limit"], 429)
 
     try:
         response_payload = conversation_runner(
@@ -468,6 +488,9 @@ def handle_game_master_chat(
             refresh_character=lambda _character_id: get_character_by_user_id(character.user_id),
             summarize_memory=summarize_memory,
         ).to_response()
+    except LLMUsageLimitError:
+        LOGGER.warning("Limite local de uso da IA atingido para character_id=%s.", character.id)
+        return _json_error(PUBLIC_ERROR_MESSAGES["prompt_usage_limit"], 413)
     except LLMRateLimitError:
         return _mask_logged_exception(
             public_message=PUBLIC_ERROR_MESSAGES["master_busy"],
@@ -534,6 +557,9 @@ def handle_game_roll_resolution(
             if get_character_by_user_id is not None
             else None,
         ).to_response()
+    except LLMUsageLimitError:
+        LOGGER.warning("Limite local de uso da IA atingido durante rolagem para character_id=%s.", character.id)
+        return _json_error(PUBLIC_ERROR_MESSAGES["prompt_usage_limit"], 413)
     except Exception:
         return _mask_logged_exception(
             public_message=PUBLIC_ERROR_MESSAGES["roll_resolution_failure"],

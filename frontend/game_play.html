@@ -127,9 +127,14 @@
               <textarea
                 id="game-chat-input"
                 name="message"
+                maxlength="{{ player_message_max_chars }}"
+                data-max-chars="{{ player_message_max_chars }}"
                 placeholder="Ex.: Eu examino as marcas da pedra e tento entender quem passou por aqui antes de mim."
                 {% if not groq_enabled or pending_event %}disabled{% endif %}
               ></textarea>
+              <div class="game-chat__input-meta">
+                <span id="game-chat-char-counter" aria-live="polite">0/{{ player_message_max_chars }}</span>
+              </div>
               <button class="button button--primary" id="game-chat-submit" type="submit" {% if not groq_enabled or pending_event %}disabled{% endif %}>
                 Falar com o mestre
               </button>

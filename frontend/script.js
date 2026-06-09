@@ -634,6 +634,9 @@ if (gameChatForm) {
   const recentRewardXp = document.getElementById("game-recent-reward-xp");
   const recentRewardGold = document.getElementById("game-recent-reward-gold");
   const recentRewardLoot = document.getElementById("game-recent-reward-loot");
+  const chatCharCounter = document.getElementById("game-chat-char-counter");
+  const chatInputMaxChars = Number.parseInt(chatInput?.dataset.maxChars || chatInput?.getAttribute("maxlength") || "", 10);
+  const hasChatInputMaxChars = Number.isFinite(chatInputMaxChars) && chatInputMaxChars > 0;
   const findPendingEventBanner = () => document.querySelector(".game-event-banner");
 
   const setText = (element, value) => {
@@ -642,6 +645,20 @@ if (gameChatForm) {
     }
 
     element.textContent = value == null ? "" : String(value);
+  };
+
+  const updateChatCharCounter = () => {
+    if (!chatInput || !chatCharCounter || !hasChatInputMaxChars) {
+      return;
+    }
+
+    if (chatInput.value.length > chatInputMaxChars) {
+      chatInput.value = chatInput.value.slice(0, chatInputMaxChars);
+    }
+
+    const usedChars = chatInput.value.length;
+    chatCharCounter.textContent = `${usedChars}/${chatInputMaxChars}`;
+    chatCharCounter.classList.toggle("is-near-limit", chatInputMaxChars - usedChars <= 50);
   };
 
   const setChatAvailability = (blocked) => {
@@ -888,6 +905,8 @@ if (gameChatForm) {
   };
 
   syncGameViewState = applyViewState;
+  updateChatCharCounter();
+  chatInput?.addEventListener("input", updateChatCharCounter);
 
   gameChatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -896,12 +915,19 @@ if (gameChatForm) {
     if (!message || !chatInput || !chatSubmit || !chatMessages) {
       return;
     }
+    if (hasChatInputMaxChars && message.length > chatInputMaxChars) {
+      chatInput.setCustomValidity(`Limite de ${chatInputMaxChars} caracteres por mensagem.`);
+      chatInput.reportValidity();
+      chatInput.setCustomValidity("");
+      return;
+    }
 
     chatInput.disabled = true;
     chatSubmit.disabled = true;
     chatSubmit.textContent = "Consultando...";
     appendChatMessage("player", message);
     chatInput.value = "";
+    updateChatCharCounter();
     const thinking = startThinkingIndicator();
 
     try {
@@ -935,7 +961,8 @@ if (gameChatForm) {
         scheduleGameRollModalOpen(payload.pending_event, 260);
       }
     } catch (error) {
-      thinking.resolve("O mestre hesita por um instante, como se a cena ainda estivesse se formando. Tente novamente.");
+      const fallbackMessage = "O mestre hesita por um instante, como se a cena ainda estivesse se formando. Tente novamente.";
+      thinking.resolve(error instanceof Error && error.message ? error.message : fallbackMessage);
       console.error(error);
     } finally {
       if (!findPendingEventBanner()) {

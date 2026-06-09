@@ -10,6 +10,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 import app as app_module
+from narrative.llm_gateway import LLMUsageLimitError
 
 
 class AppNarrativeRoutesTests(unittest.TestCase):
@@ -55,6 +56,58 @@ class AppNarrativeRoutesTests(unittest.TestCase):
         self.assertEqual(response.get_json()["gm_message"], "O mestre descreve a cena.")
         self.assertEqual(response.get_json()["view_state"]["scene"]["title"], "Encruzilhada")
         run_service.assert_called_once()
+
+    def test_game_master_route_rejects_messages_over_configured_limit(self) -> None:
+        character = SimpleNamespace(class_name="wizard")
+
+        with (
+            patch.object(app_module, "_get_character_by_user_id", return_value=character),
+            patch.object(app_module, "_groq_is_configured", return_value=True),
+            patch.object(app_module, "_get_pending_event", return_value=None),
+            patch("narrative.web_handlers.get_player_message_max_chars", return_value=5),
+            patch.object(app_module, "run_master_conversation") as run_service,
+        ):
+            response = self.client.post("/jogo/mestre", data={"message": "abcdef"})
+
+        payload = response.get_json()
+        self.assertEqual(response.status_code, 413)
+        self.assertFalse(payload["ok"])
+        self.assertIn("5", payload["message"])
+        run_service.assert_not_called()
+
+    def test_game_master_route_rejects_when_daily_usage_limit_is_reached(self) -> None:
+        character = SimpleNamespace(id=22, user_id=7, class_name="wizard")
+
+        with (
+            patch.object(app_module, "_get_character_by_user_id", return_value=character),
+            patch.object(app_module, "_groq_is_configured", return_value=True),
+            patch.object(app_module, "_get_pending_event", return_value=None),
+            patch("narrative.web_handlers.get_player_daily_master_turn_limit", return_value=3),
+            patch("narrative.web_handlers.player_message_count_since", return_value=3),
+            patch.object(app_module, "run_master_conversation") as run_service,
+        ):
+            response = self.client.post("/jogo/mestre", data={"message": "Eu observo."})
+
+        payload = response.get_json()
+        self.assertEqual(response.status_code, 429)
+        self.assertFalse(payload["ok"])
+        run_service.assert_not_called()
+
+    def test_game_master_route_returns_usage_limit_error_without_internal_details(self) -> None:
+        character = SimpleNamespace(id=22, class_name="wizard")
+
+        with (
+            patch.object(app_module, "_get_character_by_user_id", return_value=character),
+            patch.object(app_module, "_groq_is_configured", return_value=True),
+            patch.object(app_module, "_get_pending_event", return_value=None),
+            patch.object(app_module, "run_master_conversation", side_effect=LLMUsageLimitError("estimated 9000")),
+        ):
+            response = self.client.post("/jogo/mestre", data={"message": "Eu observo."})
+
+        payload = response.get_json()
+        self.assertEqual(response.status_code, 413)
+        self.assertFalse(payload["ok"])
+        self.assertNotIn("9000", payload["message"])
 
     def test_roll_route_delegates_to_service_payload(self) -> None:
         character = SimpleNamespace(class_name="wizard")

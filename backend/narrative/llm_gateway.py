@@ -5,6 +5,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from .usage_limits import estimate_messages_tokens, get_groq_max_input_tokens
+
 
 DEFAULT_GROQ_MODEL = "qwen/qwen3-32b"
 DEFAULT_GROQ_FAST_MODEL = "llama-3.1-8b-instant"
@@ -17,6 +19,10 @@ class LLMGatewayError(RuntimeError):
 
 
 class LLMRateLimitError(LLMGatewayError):
+    pass
+
+
+class LLMUsageLimitError(LLMGatewayError):
     pass
 
 
@@ -123,6 +129,9 @@ def _strip_reasoning_artifacts(content: str) -> str:
 
 
 def format_groq_error(error: Exception) -> LLMGatewayError:
+    if isinstance(error, LLMGatewayError):
+        return error
+
     error_name = type(error).__name__
     error_text = str(error)
 
@@ -154,6 +163,15 @@ def format_groq_error(error: Exception) -> LLMGatewayError:
     return LLMGatewayError(f"Falha inesperada ao consultar a Groq: {error}")
 
 
+def _ensure_messages_within_input_limit(messages: list[object]) -> None:
+    estimated_tokens = estimate_messages_tokens(messages)
+    max_input_tokens = get_groq_max_input_tokens()
+    if estimated_tokens > max_input_tokens:
+        raise LLMUsageLimitError(
+            f"Prompt estimado em {estimated_tokens} tokens excede o limite configurado de {max_input_tokens}."
+        )
+
+
 def call_groq_messages(
     messages: list[dict],
     *,
@@ -163,6 +181,7 @@ def call_groq_messages(
     client: Any | None = None,
 ) -> str:
     resolved_settings = settings or require_groq_settings()
+    _ensure_messages_within_input_limit(messages)
     resolved_client = client or create_groq_client(resolved_settings)
     completion_kwargs = {
         "model": resolved_settings.model,
